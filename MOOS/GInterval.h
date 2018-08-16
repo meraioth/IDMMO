@@ -46,10 +46,18 @@ class GInterval: public Attribute
 		GInterval();
 		explicit GInterval(const bool defined);
 		GInterval(const GInterval& other);
-		GInterval(const int source,const int target);
+		GInterval(const int sourceid,const int targetid);
 		~GInterval();
 
 		/*TODO: rellenar con getters y setters*/
+		/*1.1.1 Getter and Setter for private Attributes
+		*/
+		int GetSourceId() const;
+
+		int GetTargetId() const;
+
+
+
 
 
 	/*
@@ -102,10 +110,23 @@ class GInterval: public Attribute
 	  static int SizeOf();
 	  static ListExpr Property();
 
+	  /*
+		1.1.1 Helpful Operators
+
+		1.1.1.1 ~Example~
+
+		Provides example string for list representation can be used by external
+		property definitions for part of ~JRouteInterval~ representation.
+
+		*/
+
+		static std::string Example();
 
 	private:
 		int source,target;
-}
+};
+
+
 }
 
  // end of namespace sgraph

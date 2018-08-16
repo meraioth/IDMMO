@@ -40,11 +40,11 @@ class MO : public Attribute
   void CopyFrom(const Attribute* right);
   StorageType GetStorageType() const;
   size_t HashValue() const;
-  MJPoint* Clone() const;
+  MO* Clone() const;
   bool Adjacent(const Attribute* attrib) const;
   static int Compare(const void* ls, const void* rs);
   int Compare(const Attribute* rhs) const;
-  int Compare(const MJPoint& rhs) const;
+  int Compare(const MO& rhs) const;
   size_t Sizeof() const;
   int NumOfFLOBs() const;
   Flob* GetFLOB(const int i);
@@ -59,14 +59,14 @@ class MO : public Attribute
 
 */
 
-  MJPoint& operator=(const MJPoint& other);
+  MO& operator=(const MO& other);
 
-  bool operator==(const MJPoint& other) const;
-  bool operator!=(const MJPoint& other) const;
-  bool operator<(const MJPoint& other) const;
-  bool operator<=(const MJPoint& other) const;
-  bool operator>(const MJPoint& other) const;
-  bool operator>=(const MJPoint& other) const;
+  bool operator==(const MO& other) const;
+  bool operator!=(const MO& other) const;
+  bool operator<(const MO& other) const;
+  bool operator<=(const MO& other) const;
+  bool operator>(const MO& other) const;
+  bool operator>=(const MO& other) const;
 
 /*
 1.1.1 Operators for Secondo Integration
@@ -94,7 +94,7 @@ class MO : public Attribute
 
 
 };
-}
+} 
 
 std::ostream& operator<< (std::ostream& os, const sgraph::MO& mo);
 
