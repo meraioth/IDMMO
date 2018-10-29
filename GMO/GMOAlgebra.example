@@ -1,0 +1,6 @@
+Operator : creategp
+Number   : 1
+Signature: string x {point,gpoint}  -> genericpoint
+Example  : query creategp('FreeSpace', (-73.00 -65.00));
+Result   : ('FreeSpace', (-73.00 -65.00))
+Tolerance: 0.01%
