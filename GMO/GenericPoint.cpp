@@ -9,6 +9,7 @@
 #include "SpatialAlgebra.h"
 #include "../Network/NetworkAlgebra.h"
 #include "../Spatial/SpatialAlgebra.h"
+#include <typeinfo>
 
 
 
@@ -27,56 +28,91 @@ The default constructor should never been used, except in the Cast-Function.
 
 */
 
-template class GenericPoint<Point>;
-template class GenericPoint<GPoint>;
-
-template<class Spatial_Structure>
-GenericPoint<Spatial_Structure>::GenericPoint() :
+GenericPoint::GenericPoint() :
 	Attribute()
 {}
 
 
-template<class Spatial_Structure>
-GenericPoint<Spatial_Structure>::GenericPoint(const GenericPoint<Spatial_Structure>& other) :
+
+GenericPoint::GenericPoint(const GenericPoint& other) :
 	Attribute(other.IsDefined())
 {
 	if(other.IsDefined()){
-		sS = other.GetSpatialStructure();
-		domain = other.GetDomain();
+    if(other.GetDefPoint() == true){
+		  point = other.GetPoint();
+      def_point = true;
+      def_gpoint = false;
+      gpoint =  GPoint(false);
+
+    }else if (other.GetDefGPoint() == true ){
+      gpoint = other.GetGPoint();
+      point =  Point(false);
+      def_gpoint = true;
+      def_point = false;
+    }
 	}else{
 		
 		
 	}
 }
 
-template<class Spatial_Structure>
-GenericPoint<Spatial_Structure>::GenericPoint(const Spatial_Structure& sS ,const Domain& domain) :
-	Attribute(true) , sS(sS) , domain(domain)
-{
-	if(domain == Stop) //TODO: decide condition to set the variable defined as false
-		SetDefined(false);
+
+GenericPoint::GenericPoint(const Point& inpoint) :
+	Attribute(true) 
+{ 
+  domain= FreeSpace; 
+  def_point = true;
+  def_gpoint =false;
+  point=inpoint;
+  gpoint =  GPoint(false);
+}
+GenericPoint::GenericPoint(const GPoint& ingpoint) :
+  Attribute(true) 
+{ 
+  domain = Network;
+  def_point = false;
+  def_gpoint =true;
+  gpoint=ingpoint;
+  point =  Point(false);
 }
 
-template<class Spatial_Structure>
-GenericPoint<Spatial_Structure>::GenericPoint(const bool defined) :
-	Attribute(defined), domain(FreeSpace)
+
+GenericPoint::GenericPoint(const bool defined) :
+	Attribute(defined)
 {}
 
 
-template<class Spatial_Structure>
-GenericPoint<Spatial_Structure>::~GenericPoint(){}
+
+GenericPoint::~GenericPoint(){}
 
 /*
 1.1 Getter and Setter for private Attributes
 */
 
-template<class Spatial_Structure>
-Domain GenericPoint<Spatial_Structure>::GetDomain() const{
+bool GenericPoint::GetDefGPoint()const{
+  return def_gpoint;
+}
+
+bool GenericPoint::GetDefPoint()const{
+  return def_point;
+}
+
+Point GenericPoint::GetPoint()const{
+  return point;
+}
+
+GPoint GenericPoint::GetGPoint()const{
+  return gpoint;
+}
+
+
+Domain GenericPoint::GetDomain() const{
 	return domain;
 }
 
-template<class Spatial_Structure>
-string GenericPoint<Spatial_Structure>::GetStrDomain() const{
+
+
+string GenericPoint::GetStrDomain() const{
   switch(GetDomain()){
       case FreeSpace:
       {
@@ -102,43 +138,43 @@ string GenericPoint<Spatial_Structure>::GetStrDomain() const{
 
 
 
-template<class Spatial_Structure>
-Spatial_Structure GenericPoint<Spatial_Structure>::GetSpatialStructure() const{
+
+/*Spatial_Structure GenericPoint::GetSpatialStructure() const{
 	return sS;
-}
+}*/
 
 /*
 1.1 Overwrite Methods from Attribute
 
 */
 
-template<class Spatial_Structure>
-void GenericPoint<Spatial_Structure>::CopyFrom(const Attribute* right)
+
+void GenericPoint::CopyFrom(const Attribute* right)
 {
   *this = *((GenericPoint*)right);
 }
 
-template<class Spatial_Structure>
-Attribute::StorageType GenericPoint<Spatial_Structure>::GetStorageType() const
+
+Attribute::StorageType GenericPoint::GetStorageType() const
 {
   return Default;
 }
 
-template<class Spatial_Structure>
-size_t GenericPoint<Spatial_Structure>::HashValue() const
+
+size_t GenericPoint::HashValue() const
 {
-  return (size_t) sS.Sizeof() + (size_t) domain;
+  return (size_t) point.Sizeof() + (size_t) def_point;
 }
 
-template<class Spatial_Structure>
-GenericPoint<Spatial_Structure>* GenericPoint<Spatial_Structure>::Clone() const
+
+GenericPoint* GenericPoint::Clone() const
 {
-  return new GenericPoint<Spatial_Structure>(*this);
+  return new GenericPoint(*this);
 }
 
 //TODO : define what means adjacent
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::Adjacent(const GenericPoint& other) const
+
+bool GenericPoint::Adjacent(const GenericPoint& other) const
 {
   // if (IsDefined() && other.IsDefined())
   //   return (sourceid == other.GetTargetId() || targetid == other.GetSourceId());
@@ -146,20 +182,20 @@ bool GenericPoint<Spatial_Structure>::Adjacent(const GenericPoint& other) const
     return false;
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::Adjacent(const Attribute* attrib) const
+
+bool GenericPoint::Adjacent(const Attribute* attrib) const
 {
   return Adjacent(*((GenericPoint*) attrib));
 }
 
-template<class Spatial_Structure>
-int GenericPoint<Spatial_Structure>::Compare(const Attribute* rhs) const
+
+int GenericPoint::Compare(const Attribute* rhs) const
 {
   return Compare(*((GenericPoint*)rhs));
 }
 
-template<class Spatial_Structure>
-int GenericPoint<Spatial_Structure>::Compare(const void* ls, const void* rs)
+
+int GenericPoint::Compare(const void* ls, const void* rs)
 {
   GenericPoint lhs( *(GenericPoint*) ls);
   GenericPoint rhs( *(GenericPoint*) rs);
@@ -167,8 +203,8 @@ int GenericPoint<Spatial_Structure>::Compare(const void* ls, const void* rs)
 }
 
 /*TODO : check critera for compare two generic point*/
-template<class Spatial_Structure>
-int GenericPoint<Spatial_Structure>::Compare(const GenericPoint& in) const
+
+int GenericPoint::Compare(const GenericPoint& in) const
 {
   if (!IsDefined() && !in.IsDefined()) return 0;
   if (!IsDefined() && in.IsDefined()) return -1;
@@ -179,21 +215,21 @@ int GenericPoint<Spatial_Structure>::Compare(const GenericPoint& in) const
  	return 0;
 }
 
-template<class Spatial_Structure>
-size_t GenericPoint<Spatial_Structure>::Sizeof() const
+
+size_t GenericPoint::Sizeof() const
 {
   return sizeof(GenericPoint);
 }
 
 
-template<class Spatial_Structure>
-ostream& GenericPoint<Spatial_Structure>::Print(ostream& os) const
+
+ostream& GenericPoint::Print(ostream& os) const
 {
   os << "GenericPoint: ";
   if (IsDefined())
   {
-    // os << "sourceid: " << sourceid
-    //    << ", targetid: " << targetid;
+    //os << "domain: " << GetStrDomain();
+    //sS.Print(os);
        
   }
   else
@@ -201,14 +237,14 @@ ostream& GenericPoint<Spatial_Structure>::Print(ostream& os) const
   return os;
 }
 
-template<class Spatial_Structure>
-const string GenericPoint<Spatial_Structure>::BasicType()
-{
+
+const string GenericPoint::BasicType()
+{ 
   return "genericpoint";
 }
 
-template<class Spatial_Structure>
-const bool GenericPoint<Spatial_Structure>::checkType(const ListExpr type)
+
+const bool GenericPoint::checkType(const ListExpr type)
 {
   return listutils::isSymbol(type, BasicType());
 }
@@ -219,51 +255,64 @@ const bool GenericPoint<Spatial_Structure>::checkType(const ListExpr type)
 
 */
 
-template<class Spatial_Structure>
-GenericPoint<Spatial_Structure>& GenericPoint<Spatial_Structure>::operator=(const GenericPoint<Spatial_Structure>& other)
+
+GenericPoint& GenericPoint::operator=(const GenericPoint& other)
 {
   SetDefined(other.IsDefined());
   if (other.IsDefined())
   {
-    // sourceid = other.GetSourceId();
+    if(other.GetDefPoint()){
+      def_point=true;
+      def_gpoint = false;
+      point = other.GetPoint();
+      gpoint = GPoint(false);
+      domain = FreeSpace;
+    }else if(other.GetDefGPoint()){
+      cout<<"Asigna GPoint (=)"<<endl;
+      def_point=false;
+      def_gpoint = true;
+      point = Point(false);
+      gpoint = other.GetGPoint();
+      domain = Network;
+    }
     // targetid = other.GetTargetId();
 
   }
   return *this;
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::operator==(const GenericPoint& other) const
+
+bool GenericPoint::operator==(const GenericPoint& other) const
 {
   return (Compare(&other) == 0);
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::operator!=(const GenericPoint& other) const
+
+bool GenericPoint::operator!=(const GenericPoint& other) const
 {
   return (Compare(&other) != 0);
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::operator<(const GenericPoint& other) const
+
+bool GenericPoint::operator<(const GenericPoint& other) const
 {
   return (Compare(&other) < 0);
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::operator<=(const GenericPoint& other) const
+
+bool GenericPoint::operator<=(const GenericPoint& other) const
 {
   return (Compare(&other) < 1);
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::operator>(const GenericPoint& other) const
+
+bool GenericPoint::operator>(const GenericPoint& other) const
 {
   return (Compare(&other) > 0);
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::operator>=(const GenericPoint& other) const
+
+bool GenericPoint::operator>=(const GenericPoint& other) const
 {
   return (Compare(&other) > -1);
 }
@@ -273,41 +322,50 @@ bool GenericPoint<Spatial_Structure>::operator>=(const GenericPoint& other) cons
 /*
 1.5 Operators for Secondo Integration
 */
-template<class Spatial_Structure>
-ListExpr GenericPoint<Spatial_Structure>::Out(ListExpr typeInfo, Word value)
-{
+
+ListExpr GenericPoint::Out(ListExpr typeInfo, Word value)
+{ 
   GenericPoint* actValue = (GenericPoint*) value.addr;
+  ostream & o = cout;
+  actValue->Print(o);
   if (!actValue->IsDefined())
     return nl->SymbolAtom(Symbol::UNDEFINED());
   else
   {
-
-    // ListExpr sS_lE = nl->TheEmptyList();
-    Spatial_Structure sS(actValue->GetSpatialStructure());
-
-    if(actValue->GetStrDomain() == "FreeSpace")
+    if(actValue->GetDefPoint()){
+      Point point = actValue->GetPoint();
       return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
-      OutPoint(nl->TheEmptyList(),SetWord((void*) &sS)));
-    else 
+      OutPoint(nl->TheEmptyList(),SetWord( &point)));
+
+
+    }else if( actValue->GetDefGPoint()){
+
+      GPoint gpoint = actValue->GetGPoint();
       return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
-      network::GPoint::OutGPoint(nl->TheEmptyList(),SetWord((void*) &sS)));
+      GPoint::OutGPoint(nl->TheEmptyList(),SetWord( &gpoint)));
+
+    }else //this case should never occur
+    return nl->SymbolAtom(Symbol::UNDEFINED());
+    
   }
 }
 
-template<class Spatial_Structure>
-Word GenericPoint<Spatial_Structure>::In(const ListExpr typeInfo, const ListExpr instance,
+
+Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
                const int errorPos, ListExpr& errorInfo, bool& correct)
-{
+{  
+
   NList in_list(instance);
   if (in_list.length() == 1)
-  {
+  { 
     NList first = in_list.first();
     if (first.hasStringValue())
     {
       if (first.str() == Symbol::UNDEFINED())
       {
-        correct = true;
-        return (new GenericPoint (false) );
+        correct = false;
+        cmsg.inFunError("List length should be two");
+        return SetWord(Address(0));
       }
     }
   }
@@ -315,6 +373,7 @@ Word GenericPoint<Spatial_Structure>::In(const ListExpr typeInfo, const ListExpr
   {
     if (in_list.length() == 2)
     {
+      
       NList domainList(in_list.first());
       NList spatial_structureList(in_list.second());
       
@@ -322,38 +381,39 @@ Word GenericPoint<Spatial_Structure>::In(const ListExpr typeInfo, const ListExpr
       std::string domain = "FreeSpace";
       
       if (domainList.isString() && domainList.str()!= "")
+        {   
           domain = domainList.str();
+          
+      }
       else
       {
+       
         correct = false;
         // cmsg.inFunError("1.Element should be " + CcInt::BasicType() + " >= 0.");
         return SetWord(Address(0));
       }
 
+      
+
       if(domain == "FreeSpace"){
         correct = true;
-        Domain dom = FreeSpace;
+        //Domain dom = FreeSpace;
         Point* sS = (Point*) InPoint(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
         if(correct){
-          GenericPoint<Point>* out = new GenericPoint<Point>(*sS,dom);
+          GenericPoint* out = new GenericPoint(*sS);
           return SetWord(out);
         }
       }
 
-
-
-
-      // if (spatial_structureList.isInt() && spatial_structureList)
-      // {
-      //   spatial_structureList = spatial_structureList.intval();
-      // }
-      // else
-      // {
-      //   correct = false;
-      //   cmsg.inFunError("2.Element should be " + CcInt::BasicType() +" >= 0.");
-      //   return SetWord(Address(0));
-      // }
-      
+      else if(domain == "Network"){
+        correct = true;
+        //Domain dom = Network;
+        GPoint* sS = (GPoint*) GPoint::InGPoint(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
+        if(correct){
+          GenericPoint* out = new GenericPoint(*sS);
+          return SetWord(out);
+        }
+      }
     }
   }
   correct = false;
@@ -366,56 +426,57 @@ Word GenericPoint<Spatial_Structure>::In(const ListExpr typeInfo, const ListExpr
 
 
 
-template<class Spatial_Structure>
-Word GenericPoint<Spatial_Structure>::Create(const ListExpr typeInfo)
+
+Word GenericPoint::Create(const ListExpr typeInfo)
 {
+  
   return SetWord(new GenericPoint(true));
 }
 
 
 
-template<class Spatial_Structure>
-void GenericPoint<Spatial_Structure>::Delete( const ListExpr typeInfo, Word& w )
+
+void GenericPoint::Delete( const ListExpr typeInfo, Word& w )
 {
   ((GenericPoint*) w.addr)->DeleteIfAllowed();
   w.addr = 0;
 }
 
-template<class Spatial_Structure>
-void GenericPoint<Spatial_Structure>::Close( const ListExpr typeInfo, Word& w )
+
+void GenericPoint::Close( const ListExpr typeInfo, Word& w )
 {
   ((GenericPoint*) w.addr)->DeleteIfAllowed();
   w.addr = 0;
 }
 
-template<class Spatial_Structure>
-Word GenericPoint<Spatial_Structure>::Clone( const ListExpr typeInfo, const Word& w )
+
+Word GenericPoint::Clone( const ListExpr typeInfo, const Word& w )
 {
   return SetWord(new GenericPoint(*(GenericPoint*) w.addr));
 }
 
-template<class Spatial_Structure>
-void* GenericPoint<Spatial_Structure>::Cast( void* addr )
+
+void* GenericPoint::Cast( void* addr )
 {
   return (new (addr) GenericPoint);
 }
 
-template<class Spatial_Structure>
-bool GenericPoint<Spatial_Structure>::KindCheck ( ListExpr type, ListExpr& errorInfo )
+
+bool GenericPoint::KindCheck ( ListExpr type, ListExpr& errorInfo )
 {
   return checkType(type);
 }
 
-template<class Spatial_Structure>
-int GenericPoint<Spatial_Structure>::SizeOf()
+
+int GenericPoint::SizeOf()
 {
   return sizeof(GenericPoint);
 }
 
 
 
-template<class Spatial_Structure>
-ListExpr GenericPoint<Spatial_Structure>::Property()
+
+ListExpr GenericPoint::Property()
 {
   return nl->TwoElemList(
     nl->FourElemList(
@@ -430,8 +491,8 @@ ListExpr GenericPoint<Spatial_Structure>::Property()
       nl->StringAtom("("+ Example() +")")));
 }
 
-template<class Spatial_Structure>
-string GenericPoint<Spatial_Structure>::Example()
+
+string GenericPoint::Example()
 {
   return "2 3";
 }

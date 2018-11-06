@@ -43,6 +43,10 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  /home/secondo/secondo/include/Operator.h \
  /home/secondo/secondo/include/ConstructorTemplates.h \
  /home/secondo/secondo/include/Attribute.h \
+ /home/secondo/secondo/include/GenericTC.h \
+ /home/secondo/secondo/include/Algebra.h \
+ /home/secondo/secondo/include/TypeConstructor.h \
+ /home/secondo/secondo/include/ConstructorTemplates.h \
  /home/secondo/secondo/include/TypeMapUtils.h \
  /home/secondo/secondo/include/ListUtils.h \
  /home/secondo/secondo/include/Symbols.h \
@@ -52,10 +56,7 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  /home/secondo/secondo/include/Symbols.h \
  /home/secondo/secondo/include/Serialize.h \
  /home/secondo/secondo/include/StringUtils.h GMOAlgebra.h \
- /home/secondo/secondo/include/Algebra.h \
- /home/secondo/secondo/include/TypeConstructor.h \
- /home/secondo/secondo/include/ConstructorTemplates.h \
- ../JNet/PairIntDouble.h GenericPoint.h \
+ /home/secondo/secondo/include/Algebra.h GenericPoint.h \
  /home/secondo/secondo/include/../Tools/Flob/DbArray.h \
  /home/secondo/secondo/include/../Tools/Flob/Flob.h \
  /home/secondo/secondo/include/DateTime.h \
@@ -64,9 +65,7 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  /home/secondo/secondo/include/BigInt.h Domain.h \
  ../Temporal/TemporalAlgebra.h /home/secondo/secondo/include/NestedList.h \
  ../Spatial/SpatialAlgebra.h ../Spatial/SimplePoint.h ../Spatial/Point.h \
- ../Spatial/Coord.h ../Spatial/Geoid.h \
- /home/secondo/secondo/include/GenericTC.h \
- /home/secondo/secondo/include/Algebra.h ../Rectangle/RectangleAlgebra.h \
+ ../Spatial/Coord.h ../Spatial/Geoid.h ../Rectangle/RectangleAlgebra.h \
  /home/secondo/secondo/include/Messages.h ../Spatial/Geoid.h \
  ../Spatial/../../Tools/Flob/DbArray.h \
  ../Spatial/../Rectangle/RectangleAlgebra.h \
@@ -75,9 +74,7 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  ../Spatial/HalfSegment.h ../Spatial/AttrType.h ../Spatial/Berlin2WGS.h \
  ../Spatial/SpatialAlgebra.h ../Temporal/../../Tools/Flob/DbArray.h \
  /home/secondo/secondo/include/Progress.h ../Temporal/CellGrid.h \
- ../Temporal/../../include/CharTransform.h \
- /home/secondo/secondo/include/AlgebraManager.h \
- ../Network/NetworkAlgebra.h \
+ ../Temporal/../../include/CharTransform.h ../Network/NetworkAlgebra.h \
  ../Network/../TupleIdentifier/TupleIdentifier.h \
  ../Network/../Relation-C++/RelationAlgebra.h \
  /home/secondo/secondo/include/Trace.h \
@@ -87,4 +84,8 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  ../Network/../../Tools/Flob/Flob.h \
  ../Network/../Spatial/SpatialAlgebra.h \
  ../Network/../RTree/RTreeAlgebra.h ../Relation-C++/RelationAlgebra.h \
- ../BTree/BTreeAlgebra.h ../Spatial/Point.h
+ ../BTree/BTreeAlgebra.h ../Spatial/SpatialAlgebra.h IGenericPoint.h \
+ GenericMPoint.h ../TemporalNet/TemporalNetAlgebra.h \
+ ../TemporalNet/../Spatial/Geoid.h \
+ ../TemporalNet/../Network/NetworkAlgebra.h \
+ /home/secondo/secondo/include/AlgebraManager.h ../Spatial/Point.h

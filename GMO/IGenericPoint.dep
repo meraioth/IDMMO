@@ -1,4 +1,4 @@
-GenericPoint.o: GenericPoint.cpp GenericPoint.h \
+IGenericPoint.o: IGenericPoint.cpp IGenericPoint.h \
  /home/secondo/secondo/include/../Tools/Flob/DbArray.h \
  /home/secondo/secondo/include/../Tools/Flob/Flob.h \
  /home/secondo/secondo/include/../Tools/Flob/FlobId.h \

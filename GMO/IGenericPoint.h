@@ -1,5 +1,5 @@
-#ifndef GENERICPOINT_H
-#define GENERICPOINT_H
+#ifndef IGenericPoint_H
+#define IGenericPoint_H
 
 #include <iostream>
 #include <string>
@@ -13,17 +13,26 @@
 #include "../Spatial/SpatialAlgebra.h"
 
 using namespace network;
+using namespace temporalalgebra;
+
+
+
+typedef Intime<GPoint> IGPoint;
+typedef Intime<Point> IPoint;
+
 
 namespace gmo{
 
-	class GenericPoint : public Attribute{
+	class IGenericPoint : public Attribute{
 		public  :
-			GenericPoint();
-			explicit GenericPoint(const bool defined);
-			GenericPoint(const Point& point);
-			GenericPoint(const GPoint& gpoint);
-			GenericPoint(const GenericPoint& gP);
-			~GenericPoint();
+			IGenericPoint();
+			explicit IGenericPoint(const bool defined);
+			IGenericPoint(const Instant& _instant , const Point _point);
+			IGenericPoint(const Instant& _instant , const GPoint _gpoint);
+			IGenericPoint(const IPoint& _ipoint);
+			IGenericPoint(const IGPoint& _ipoint);
+			IGenericPoint(const IGenericPoint& gP);
+			~IGenericPoint();
 
 			/*
 			1.1 Getters and setters
@@ -31,21 +40,21 @@ namespace gmo{
 			*/
 			Domain GetDomain() const;
 			std::string GetStrDomain() const;
-			Point GetPoint() const;
-			GPoint GetGPoint() const;
-			bool GetDefPoint() const;
-			bool GetDefGPoint() const;
+			IPoint GetIPoint() const;
+			IGPoint GetIGPoint() const;
+			bool GetDefIPoint() const;
+			bool GetDefIGPoint() const;
 			//Spatial_Structure GetSpatialStructure() const;
 
 			void CopyFrom(const Attribute* right);
 			StorageType GetStorageType() const;
 			size_t HashValue() const;
-			GenericPoint* Clone() const;
+			IGenericPoint* Clone() const;
 			bool Adjacent(const Attribute* attrib) const;
-			bool Adjacent(const GenericPoint& attrib) const;
+			bool Adjacent(const IGenericPoint& attrib) const;
 			static int Compare(const void* ls, const void* rs);
 			int Compare(const Attribute* rhs) const;
-			int Compare(const GenericPoint& rhs) const;
+			int Compare(const IGenericPoint& rhs) const;
 			size_t Sizeof() const;
 			std::ostream& Print(std::ostream& os) const;
 			static const std::string BasicType();
@@ -57,14 +66,14 @@ namespace gmo{
 
 			*/
 
-			GenericPoint& operator=(const GenericPoint& other);
+			IGenericPoint& operator=(const IGenericPoint& other);
 
-			bool operator==(const GenericPoint& other) const;
-			bool operator!=(const GenericPoint& other) const;
-			bool operator<(const GenericPoint& other) const;
-			bool operator<=(const GenericPoint& other) const;
-			bool operator>(const GenericPoint& other) const;
-			bool operator>=(const GenericPoint& other) const;
+			bool operator==(const IGenericPoint& other) const;
+			bool operator!=(const IGenericPoint& other) const;
+			bool operator<(const IGenericPoint& other) const;
+			bool operator<=(const IGenericPoint& other) const;
+			bool operator>(const IGenericPoint& other) const;
+			bool operator>=(const IGenericPoint& other) const;
 
 			/*
 			1.1.1 Operators for Secondo Integration
@@ -96,16 +105,16 @@ namespace gmo{
 			static std::string Example();
 
 		private :
-			Point point;
-			GPoint gpoint;
-			bool def_point,def_gpoint;
+			IPoint ipoint;
+			IGPoint igpoint;
+			bool def_ipoint,def_igpoint;
 			Domain domain;
 	};
 
 
 }
 
-std::ostream& operator<< (std::ostream& os, const gmo::GenericPoint& gp);
+std::ostream& operator<< (std::ostream& os, const gmo::IGenericPoint& gp);
 
 
 #endif

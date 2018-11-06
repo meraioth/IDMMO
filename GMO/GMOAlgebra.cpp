@@ -1,69 +1,118 @@
 #include <string>
-#include <iostream>
 #include "SecondoCatalog.h"
 #include "QueryProcessor.h"
 #include "Attribute.h"
 #include "AlgebraTypes.h"
 #include "Operator.h"
 #include "ConstructorTemplates.h"
-//#include "GenericTC.h"
+#include "GenericTC.h"
 #include "TypeMapUtils.h"
 #include "ListUtils.h"
 #include "Symbols.h"
 #include "StandardTypes.h"
 #include "GMOAlgebra.h"
-#include "PairIntDouble.h"
 #include "GenericPoint.h"
+#include "IGenericPoint.h"
+#include "GenericMPoint.h"
 #include "QueryProcessor.h"   // needed for implementing value mappings
 #include "AlgebraManager.h"   // e.g., check for certain kind
 #include "../Network/NetworkAlgebra.h"
 #include "Point.h"
-
+#include <typeinfo>
 
 
 using namespace std;
 using namespace mappings;
 using namespace gmo;
+using namespace network;
 
 extern NestedList* nl;
 extern QueryProcessor* qp;
 
 namespace gmo{
-  
-se vListExpr creategpTM (ListExpr args)
-{
-  string err = "string x {point,gpoint} expected";
-  if(!nl->HasLength(args,2)){
-      return listutils::typeError(err);
-  }
-  if(!CcString::checkType(nl->First(args))){
-      return listutils::typeError(err);
-  }
 
-  if(!Point::checkType(nl->Second(args)) && !network::GPoint::checkType(nl->Second(args))){
-      return listutils::typeError(err);
-  }
-  if( Point::checkType(nl->Second(args)) ){
-    cout<<"paso comprobacion TM Point"<<endl;
-    return listutils::basicSymbol<GenericPoint<Point> >();
-  }
-  else{
-    return listutils::basicSymbol<GenericPoint<network::GPoint> >();
-  }
+
+
+TypeConstructor gpointTC(
+  GenericPoint::BasicType(),
+  GenericPoint::Property,
+  GenericPoint::Out, GenericPoint::In,
+  0, 0,
+  GenericPoint::Create, GenericPoint::Delete,
+  OpenAttribute<GenericPoint >,
+  SaveAttribute<GenericPoint >,
+  GenericPoint::Close, GenericPoint::Clone,
+  GenericPoint::Cast,
+  GenericPoint::SizeOf,
+  GenericPoint::KindCheck);
+
+
+TypeConstructor igpointTC(
+  IGenericPoint::BasicType(),
+  IGenericPoint::Property,
+  IGenericPoint::Out, IGenericPoint::In,
+  0, 0,
+  IGenericPoint::Create, IGenericPoint::Delete,
+  OpenAttribute<IGenericPoint >,
+  SaveAttribute<IGenericPoint >,
+  IGenericPoint::Close, IGenericPoint::Clone,
+  IGenericPoint::Cast,
+  IGenericPoint::SizeOf,
+  IGenericPoint::KindCheck);
+
+TypeConstructor gmpointTC(
+  GenericMPoint::BasicType(),
+  GenericMPoint::Property,
+  GenericMPoint::Out, GenericMPoint::In,
+  0, 0,
+  GenericMPoint::Create, GenericMPoint::Delete,
+  OpenAttribute<GenericMPoint >,
+  SaveAttribute<GenericMPoint >,
+  GenericMPoint::Close, GenericMPoint::Clone,
+  GenericMPoint::Cast,
+  GenericMPoint::SizeOf,
+  GenericMPoint::KindCheck);
+
+
+
+/*
+1.1.1 ~creategint~
+
+Creates an ~gint~ from two ~int~ (source identifier, target identifier).
+
+*/
+
+const string maps_creategint[2][3] =
+{
+  {CcString::BasicType(), Point::BasicType(),GenericPoint::BasicType()},
+  {CcString::BasicType(), GPoint::BasicType(),GenericPoint::BasicType()}
   
+};
+
+ListExpr creategpointTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<2,3>(maps_creategint, args);
+
 }
 
-
-int creategpVMpoint( Word* args, Word& result, int message, Word& local,
-                  Supplier s)
+int creategpointSelect(ListExpr args)
 { 
-  cout<<"entro a VMpoint"<<endl;
+  
+
+  return SimpleSelect<2,3>(maps_creategint, args);
+}
+
+int creategpointVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
   result = qp->ResultStorage(s);
-  GenericPoint<Point>* res = static_cast<GenericPoint<Point>*> (result.addr);
+  GenericPoint* res = static_cast<GenericPoint*> (result.addr);
 
   CcString* domain = (CcString*) args[0].addr;
   Point* point = (Point*) args[1].addr;
-
+  //res->Clear();
   if (! domain->IsDefined() || ! point->IsDefined()){
     res->SetDefined(false);
     return 0;
@@ -77,20 +126,22 @@ int creategpVMpoint( Word* args, Word& result, int message, Word& local,
   else  //default value
     dDomain = FreeSpace;
 
+  cout<<dDomain<<endl;
   res->SetDefined(true);
 
-  GenericPoint<Point>* t = new GenericPoint<Point>(*point,dDomain);
+  GenericPoint* t = new GenericPoint(*point);
   *res = *t;
   t->DeleteIfAllowed();
   
   return 0;
 }
 
-int creategpVMgpoint( Word* args, Word& result, int message, Word& local,
+
+int creategnpointVM( Word* args, Word& result, int message, Word& local,
                   Supplier s)
-{ cout<<"entro a VMgpoint"<<endl;
+{ 
   result = qp->ResultStorage(s);
-  GenericPoint<network::GPoint>* res = static_cast<GenericPoint<network::GPoint>*> (result.addr);
+  GenericPoint* res = static_cast<GenericPoint*> (result.addr);
 
   CcString* domain = (CcString*) args[0].addr;
   network::GPoint* point = (network::GPoint*) args[1].addr;
@@ -104,62 +155,50 @@ int creategpVMgpoint( Word* args, Word& result, int message, Word& local,
 
   Domain dDomain ;
   string sDomain =(const char*)(domain->GetStringval());
-  if(sDomain == "FreeSpace")
-      dDomain = FreeSpace;
-  else if (sDomain =="Network")
-      dDomain = Network;
-  else  //default value
-    dDomain = FreeSpace;
-  
-  res->SetDefined(true);
 
-  GenericPoint<network::GPoint>* t = new GenericPoint<network::GPoint>(
-                                           *point,dDomain);
+  
+  if(sDomain == "FreeSpace"){
+      res->SetDefined(false);
+      return 0;
+    }
+  else if(sDomain =="Network")
+      dDomain = Network;
+  
+  cout<<dDomain<<endl; 
+ 
+
+  GenericPoint* t = new GenericPoint(
+                                           *point);
+  
+
+  
   *res = *t;
-  t->DeleteIfAllowed();
+
+  
+  
+  //t->DeleteIfAllowed();
   
   return 0;
 }
 
-
-
-ValueMapping creategpVM[] =
+ValueMapping creategpointMap[] =
 {
-  creategpVMpoint,
-  creategpVMgpoint,0
+  creategpointVM,
+  creategnpointVM
 };
 
-int creategpSelect(ListExpr args){
-  
-
-  if(Point::checkType(nl->Second(args))){
-    cout<<"es punto"<<endl;
-    return 0;
-  }
-  if(network::GPoint::checkType(nl->Second(args))){
-    return 1;
-  }
-
-  return 0;
-
-}
-
-const string creategpSpec =
+const string creategpointSpec =
   "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
-  "(<text>" + CcString::BasicType() + " x " + " -> " +
-   "</text--->"+
-  "<text>creategint( <sourceid> , <targetid> ) </text--->"+
-  "<text>Creates a " + ".</text--->"+
-  "<text>query creategp(domain,{point,mpoint})</text--->))";
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
 
-Operator creategpOp( "creategp", creategpSpec, 2, creategpVM,
-                         creategpSelect, creategpTM);
+Operator creategpointGMO( "creategpoint", creategpointSpec,2 , creategpointMap,
+                         creategpointSelect, creategpointTM);
 
 
 }//end of namespace sgraph
 
 /*
-1 Implementation of ~class GMOAlgebra~
+1 Implementation of ~class MOOSAlgebra~
 
 1.1 Constructor
 
@@ -167,11 +206,16 @@ Operator creategpOp( "creategp", creategpSpec, 2, creategpVM,
 GMOAlgebra::GMOAlgebra():Algebra()
 {
 
-// AddTypeConstructor(&gpTC);
-// gpTC.AssociateKind(Kind::DATA());
+
+AddTypeConstructor(&gpointTC);
+gpointTC.AssociateKind(Kind::DATA());
+AddTypeConstructor(&igpointTC);
+igpointTC.AssociateKind(Kind::DATA());
+AddTypeConstructor(&gmpointTC);
+gmpointTC.AssociateKind(Kind::DATA());
 
 
- AddOperator(&creategpOp);
+AddOperator(&creategpointGMO);
 }
 
 GMOAlgebra::~GMOAlgebra(){}

@@ -1,4 +1,4 @@
-GenericPoint.o: GenericPoint.cpp GenericPoint.h \
+GenericMPoint.o: GenericMPoint.cpp GenericMPoint.h \
  /home/secondo/secondo/include/../Tools/Flob/DbArray.h \
  /home/secondo/secondo/include/../Tools/Flob/Flob.h \
  /home/secondo/secondo/include/../Tools/Flob/FlobId.h \
@@ -78,6 +78,8 @@ GenericPoint.o: GenericPoint.cpp GenericPoint.h \
  ../Network/../../Tools/Flob/Flob.h \
  ../Network/../Spatial/SpatialAlgebra.h \
  ../Network/../RTree/RTreeAlgebra.h ../Relation-C++/RelationAlgebra.h \
- ../BTree/BTreeAlgebra.h ../Spatial/SpatialAlgebra.h \
+ ../BTree/BTreeAlgebra.h ../TemporalNet/TemporalNetAlgebra.h \
+ ../TemporalNet/../Spatial/Geoid.h \
+ ../TemporalNet/../Network/NetworkAlgebra.h ../Spatial/SpatialAlgebra.h \
  /home/secondo/secondo/include/NList.h \
  /home/secondo/secondo/include/Symbols.h
