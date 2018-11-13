@@ -268,7 +268,6 @@ GenericPoint& GenericPoint::operator=(const GenericPoint& other)
       gpoint = GPoint(false);
       domain = FreeSpace;
     }else if(other.GetDefGPoint()){
-      cout<<"Asigna GPoint (=)"<<endl;
       def_point=false;
       def_gpoint = true;
       point = Point(false);

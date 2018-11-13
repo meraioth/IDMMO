@@ -14,6 +14,8 @@
 #include "GenericPoint.h"
 #include "IGenericPoint.h"
 #include "GenericMPoint.h"
+#include "TPoint.h"
+#include "UTPoint.h"
 #include "QueryProcessor.h"   // needed for implementing value mappings
 #include "AlgebraManager.h"   // e.g., check for certain kind
 #include "../Network/NetworkAlgebra.h"
@@ -73,6 +75,31 @@ TypeConstructor gmpointTC(
   GenericMPoint::SizeOf,
   GenericMPoint::KindCheck);
 
+TypeConstructor tpointTC(
+  TPoint::BasicType(),
+  TPoint::Property,
+  TPoint::Out, TPoint::In,
+  0, 0,
+  TPoint::Create, TPoint::Delete,
+  OpenAttribute<TPoint >,
+  SaveAttribute<TPoint >,
+  TPoint::Close, TPoint::Clone,
+  TPoint::Cast,
+  TPoint::SizeOf,
+  TPoint::KindCheck);
+
+TypeConstructor utpointTC(
+  UTPoint::BasicType(),
+  UTPoint::Property,
+  UTPoint::Out, UTPoint::In,
+  0, 0,
+  UTPoint::Create, UTPoint::Delete,
+  OpenAttribute<UTPoint >,
+  SaveAttribute<UTPoint >,
+  UTPoint::Close, UTPoint::Clone,
+  UTPoint::Cast,
+  UTPoint::SizeOf,
+  UTPoint::KindCheck);
 
 
 /*
@@ -213,6 +240,10 @@ AddTypeConstructor(&igpointTC);
 igpointTC.AssociateKind(Kind::DATA());
 AddTypeConstructor(&gmpointTC);
 gmpointTC.AssociateKind(Kind::DATA());
+AddTypeConstructor(&tpointTC);
+tpointTC.AssociateKind(Kind::DATA());
+AddTypeConstructor(&utpointTC);
+utpointTC.AssociateKind(Kind::DATA());
 
 
 AddOperator(&creategpointGMO);

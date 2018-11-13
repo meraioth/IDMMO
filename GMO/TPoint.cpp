@@ -33,23 +33,131 @@ TPoint::TPoint():Attribute()
 
   
 TPoint::TPoint(const string stop_id):Attribute(true),stop_id(stop_id){}
-TPoint::TPoint(const bool def):Attribute(def){};
-TPoint( const TPoint& in_xOther):Attribute(in_xOther.IsDefined()){
+
+TPoint::TPoint(const bool def):Attribute(def){}
+
+TPoint::TPoint( const TPoint& in_xOther):Attribute(in_xOther.IsDefined()){
 	if(in_xOther.IsDefined()){
 		stop_id= in_xOther.GetStop();
 	}
 }
-~TPoint();
+TPoint::~TPoint(){};
 
 
-string TPoint::GetStop(){
+string TPoint::GetStop()const{
 	return stop_id;
 }
 
 /*
-3.4.2 Methods of class ~tpoint~
+1.1 Overwrite Methods from Attribute
 
 */
+
+
+void TPoint::CopyFrom(const Attribute* right)
+{
+  *this = *((TPoint*)right);
+}
+
+
+Attribute::StorageType TPoint::GetStorageType() const
+{
+  return Default;
+}
+
+
+size_t TPoint::HashValue() const
+{
+  return (size_t) stop_id.size();
+}
+
+
+TPoint* TPoint::Clone() const
+{
+  return new TPoint(*this);
+}
+
+//TODO : define what means adjacent
+
+bool TPoint::Adjacent(const TPoint& other) const
+{
+  // if (IsDefined() && other.IsDefined())
+  //   return (sourceid == other.GetTargetId() || targetid == other.GetSourceId());
+  // else
+    return false;
+}
+
+
+bool TPoint::Adjacent(const Attribute* attrib) const
+{
+  return Adjacent(*((TPoint*) attrib));
+}
+
+
+int TPoint::Compare(const Attribute* rhs) const
+{
+  return Compare(*((TPoint*)rhs));
+}
+
+
+int TPoint::Compare(const void* ls, const void* rs)
+{
+  TPoint lhs( *(TPoint*) ls);
+  TPoint rhs( *(TPoint*) rs);
+  return lhs.Compare(rhs);
+}
+
+/*TODO : check critera for compare two generic point*/
+
+int TPoint::Compare(const TPoint& in) const
+{
+  if (!IsDefined() && !in.IsDefined()) return 0;
+  if (!IsDefined() && in.IsDefined()) return -1;
+  if (IsDefined() && !in.IsDefined()) return -1;
+  if (stop_id == in.GetStop()) return 1;
+
+ 
+ 	return 0;
+}
+
+
+size_t TPoint::Sizeof() const
+{
+  return sizeof(TPoint);
+}
+
+
+
+ostream& TPoint::Print(ostream& os) const
+{
+  os << "TPoint: ";
+  if (IsDefined())
+  {
+    os << "stop : " << GetStop();
+ 
+       
+  }
+  else
+    os << Symbol::UNDEFINED() << endl;
+  return os;
+}
+
+const string TPoint::BasicType(){ 
+	return "tpoint"; 
+}
+
+const bool TPoint::checkType(const ListExpr type){
+	return listutils::isSymbol(type, BasicType());
+}
+
+
+
+/*
+1.4 Standard Operators
+
+*/
+
+
 
 TPoint& TPoint::operator=( const TPoint& in_xOther )
 {
@@ -62,32 +170,190 @@ TPoint& TPoint::operator=( const TPoint& in_xOther )
 }
 
 
-
-
-bool TPoint::CheckTPoint( ListExpr type, ListExpr& errorInfo );
-
-string TPoint::BasicType(){ 
-	return "tpoint"; 
+bool TPoint::operator==(const TPoint& other) const
+{
+  return (Compare(&other) == 1);
 }
 
-bool TPoint::checkType(const ListExpr type){
-	return listutils::isSymbol(type, BasicType());
+
+bool TPoint::operator!=(const TPoint& other) const
+{
+  return (Compare(&other) != 0);
 }
+
+
+bool TPoint::operator<(const TPoint& other) const
+{
+  return (Compare(&other) < 0);
+}
+
+
+bool TPoint::operator<=(const TPoint& other) const
+{
+  return (Compare(&other) < 1);
+}
+
+
+bool TPoint::operator>(const TPoint& other) const
+{
+  return (Compare(&other) > 0);
+}
+
+
+bool TPoint::operator>=(const TPoint& other) const
+{
+  return (Compare(&other) > -1);
+}
+
+
+
+/*
+1.5 Operators for Secondo Integration
+*/
+
+ListExpr TPoint::Out(ListExpr typeInfo, Word value)
+{ 
+  TPoint* actValue = (TPoint*) value.addr;
+  
+  if (!actValue->IsDefined())
+    return nl->SymbolAtom(Symbol::UNDEFINED());
+  else
+  {
+      return nl->OneElemList(nl->StringAtom(actValue->GetStop()));
+    
+  }
+}
+
+
+Word TPoint::In(const ListExpr typeInfo, const ListExpr instance,
+               const int errorPos, ListExpr& errorInfo, bool& correct)
+{  
+
+  NList in_list(instance);
+  if (in_list.length() == 0)
+  { 
+    correct = false;
+    cmsg.inFunError("List length should be one");
+    return SetWord(Address(0));
+      
+  }
+  else
+  {	
+  	
+  	if(in_list.first().isString() && in_list.first().str()!= ""){
+  		
+      TPoint* tpoint = new TPoint(in_list.first().str());
+ 	  correct=true;
+      return SetWord(tpoint);
+     }else{
+     	correct = false;
+    	cmsg.inFunError("List should have a string value");
+    	return SetWord(Address(0));
+     }
+        
+  }
+
+  
+}
+
+
+
+Word TPoint::Create(const ListExpr typeInfo)
+{
+  
+  return SetWord(new TPoint(true));
+}
+
+
+
+
+void TPoint::Delete( const ListExpr typeInfo, Word& w )
+{
+  ((TPoint*) w.addr)->DeleteIfAllowed();
+  w.addr = 0;
+}
+
+
+void TPoint::Close( const ListExpr typeInfo, Word& w )
+{
+  ((TPoint*) w.addr)->DeleteIfAllowed();
+  w.addr = 0;
+}
+
+
+Word TPoint::Clone( const ListExpr typeInfo, const Word& w )
+{
+  return SetWord(new TPoint(*(TPoint*) w.addr));
+}
+
+
+void* TPoint::Cast( void* addr )
+{
+  return (new (addr) TPoint);
+}
+
+
+bool TPoint::KindCheck ( ListExpr type, ListExpr& errorInfo )
+{
+  return checkType(type);
+}
+
+
+int TPoint::SizeOf()
+{
+  return sizeof(TPoint);
+}
+
+
+
+
+ListExpr TPoint::Property()
+{
+  return nl->TwoElemList(
+    nl->FourElemList(
+      nl->StringAtom("Signature"),
+      nl->StringAtom("Example Type List"),
+      nl->StringAtom("List Rep"),
+      nl->StringAtom("Example List")),
+    nl->FourElemList(
+      nl->StringAtom("-> " + Kind::DATA()),
+      nl->StringAtom(BasicType()),
+      nl->TextAtom("(" + BasicType() + ")"),
+      nl->StringAtom("("+ Example() +")")));
+}
+
+
+const string TPoint::Example()
+{
+  return "PT102";
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*
 Computes the euclidean distance of 2 glines.
 
 */
-double TPoint::Distance (const TPoint* toTPoint){
+double TPoint::Distance (const TPoint* toTPoint)const {
 	return 0.0f;
 } 
 
 
 
-void TPoint::ToPoint(Point *& res){}
+void TPoint::ToPoint(Point *& res)const{}
 
-Point* TPoint::ToPoint(){
+Point* TPoint::ToPoint()const{
 	return new Point(false);
 }
 
@@ -100,11 +366,11 @@ Using DijkstrasAlgorithm
 
 */
 
-bool ShortestPath(const GPoint *ziel, GLine *result,
-DbArray<TupleId>* touchedSects = 0) const;
-bool ShortestPath(const GPoint* ziel, GLine *result,
-const Network* pNetwork,
-DbArray<TupleId>* touchedSects = 0) const;
+// bool ShortestPath(const GPoint *ziel, GLine *result,
+// DbArray<TupleId>* touchedSects = 0) const;
+// bool ShortestPath(const GPoint* ziel, GLine *result,
+// const Network* pNetwork,
+// DbArray<TupleId>* touchedSects = 0) const;
 
 
 
