@@ -23,6 +23,7 @@ namespace gmo{
 
   */
       TPoint();
+      TPoint( STRING_T stop_id);
       TPoint(const string stop_id);
       explicit TPoint(const bool def);
       TPoint( const TPoint& in_xOther);
@@ -31,6 +32,10 @@ namespace gmo{
       TPoint& operator=( const TPoint& in_xOther ) const;
     
       std::string GetStop() const;
+      // STRING_T GetStop() const;
+      void SetStop(std::string stop);
+      void SetStop(STRING_T stop);
+ 
 
      
       void CopyFrom(const Attribute* right);
@@ -124,7 +129,7 @@ namespace gmo{
 
     private:
 
-      string stop_id;
+      STRING_T stop_id;
 
   };
 

@@ -26,6 +26,9 @@ temporalalgebra::SpatialTemporalUnit<gmo::TPoint, 3>( interval )
 UTPoint::UTPoint(const temporalalgebra::Interval<Instant>& interval, string tp_start, string tp_end):
 temporalalgebra::SpatialTemporalUnit<gmo::TPoint, 3>( interval ),tp_start(TPoint(tp_start)),tp_end(TPoint(tp_end))
 {	
+  cout<<"Entrada :"<<tp_start<<" "<<tp_end<<endl;
+  GetStart();
+  GetEnd();
 }
 // UTPoint::UTPoint(const UTPoint& gP):temporalalgebra::SpatialTemporalUnit<gmo::TPoint, 3>( gP.IsDefined() ){
 // 	if(gP.IsDefined()){
@@ -53,10 +56,13 @@ UTPoint::~UTPoint(){};
 */
 
 TPoint UTPoint::GetStart() const{
+    cout<<"Start"<<tp_start.GetStop()<<endl;
+
 	return tp_start;
 }
 
 TPoint UTPoint::GetEnd()const{
+  cout<<"End"<<tp_end.GetStop()<<endl;
 	return tp_end;
 }
 
@@ -109,6 +115,7 @@ size_t UTPoint::Sizeof() const{
 
 }
 std::ostream& UTPoint::Print(std::ostream& os) const{
+  os<<tp_start.GetStop()<<" "<<tp_end.GetStop()<<endl;
 	return os;
 }
 const std::string UTPoint::BasicType(){
@@ -177,7 +184,7 @@ bool UTPoint::operator>=(const UTPoint& other) const
 
  ListExpr UTPoint::Out(ListExpr typeInfo, Word value){
 	UTPoint* utpoint = (UTPoint*)(value.addr);
-
+  utpoint->Print(cout);
   if( !(((UTPoint*)value.addr)->IsDefined()) )
   {
     return (nl->SymbolAtom("undefined"));
@@ -260,6 +267,9 @@ bool UTPoint::operator>=(const UTPoint& other) const
           nl->IsAtom( nl->Second( second ) ) &&
           nl->AtomType( nl->Second( second ) ) == StringType )
       {
+        NList in_list(second);
+        cout<<"String values :"<<endl<<nl->StringValue( nl->First( second ) )<<" "<<nl->StringValue( nl->Second( second ) )<<endl;
+        cout<<"String values :"<<endl<<in_list.first().str()<<" "<<in_list.second().str()<<endl;
         UTPoint *utpoint = new UTPoint(tinterval,
                                      nl->StringValue( nl->First( second ) ),
                                      nl->StringValue( nl->Second( second ) ));
@@ -349,13 +359,47 @@ int UTPoint::SizeOf()
  
 
 
- 			 /*
-			  Computes the network position of the ~ugpoint~ at a given time instant ~t~.
+ 			 void UTPoint::TemporalFunction( const Instant& t,
+                               TPoint& result,
+                               bool ignoreLimits ) const
+        {
+          TemporalFunction(t, result, 0, ignoreLimits);
+        }
 
-			  */
 			   void UTPoint::TemporalFunction( const Instant& t,
-			                                 TPoint& result,
-			                                 bool ignoreLimits) const{ cout<<"temporal_function"<<endl; return;}
+			                                 TPoint& result,const Geoid* geoid,
+			                                 bool ignoreLimits) const{ 
+          if( !IsDefined() ||
+            !t.IsDefined() ||
+            (geoid && !geoid->IsDefined()) ||
+            (!timeInterval.Contains( t ) && !ignoreLimits) ){
+            result.SetDefined(false);
+          } else if( t == timeInterval.start ){
+            result = tp_start;
+            result.SetDefined(true);
+          } else if( t == timeInterval.end ){
+            result = tp_end;
+            result.SetDefined(true);
+          } 
+          // else if(geoid){ // spherical geometry case
+          //   Instant t0 = timeInterval.start;
+          //   Instant t1 = timeInterval.end;
+          //   Coord f = ((t-t0)/(t1-t0));
+          //   result = p0.MidpointTo(p1, f, geoid);
+          // } 
+          else {// euclidean geometry cases
+            Instant t0 = timeInterval.start;
+            Instant t1 = timeInterval.end;
+            if(t-t0 >= t1-t){
+              result=tp_end;
+
+            }else{
+              result = tp_start;
+            }
+            
+            result.SetDefined(true);
+          }
+        }
 
 			  /*
 			  Returns true if the ~ugpoint~ passes a given ~gpoint~ false elsewhere.

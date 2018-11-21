@@ -7,17 +7,17 @@
 #include "Attribute.h"
 #include "StandardTypes.h"
 #include "DateTime.h"
-#include "Domain.h"
 #include "TemporalAlgebra.h"
 #include "TPoint.h"
-#include "../Network/NetworkAlgebra.h"
 #include "../Spatial/SpatialAlgebra.h"
 
-using namespace network;
+using namespace std; 
+
 
 namespace gmo{
 
-	class UTPoint :  public temporalalgebra::SpatialTemporalUnit<gmo::TPoint, 3>{
+	class UTPoint :  public temporalalgebra::SpatialTemporalUnit<TPoint, 3>{
+		  
 		public  :
 			UTPoint();
 			explicit UTPoint(const bool defined);
@@ -101,9 +101,18 @@ namespace gmo{
 			  Computes the network position of the ~ugpoint~ at a given time instant ~t~.
 
 			  */
+
+ 			//TO DO : override this for get an intermediate stop in the utpoint (using the travel id)
+ 			  // virtual void TemporalFunction( const Instant& t,
+			   //                               TPoint& result,
+			   //                               bool ignoreLimits = false ) const;
 			  virtual void TemporalFunction( const Instant& t,
 			                                 TPoint& result,
 			                                 bool ignoreLimits = false ) const;
+			  void TemporalFunction( const Instant& t,
+                         TPoint& result,
+                         const Geoid* geoid,
+                         bool ignoreLimits = false) const;
 
 			  /*
 			  Returns true if the ~ugpoint~ passes a given ~gpoint~ false elsewhere.

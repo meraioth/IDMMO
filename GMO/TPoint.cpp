@@ -32,22 +32,39 @@ TPoint::TPoint():Attribute()
 
 
   
-TPoint::TPoint(const string stop_id):Attribute(true),stop_id(stop_id){}
+TPoint::TPoint( STRING_T stop):Attribute(true){
+  sprintf(stop_id, "%s", stop);
+}
+
+TPoint::TPoint( string stop):Attribute(true){
+  sprintf(stop_id, "%s", stop.c_str());
+}
 
 TPoint::TPoint(const bool def):Attribute(def){}
 
 TPoint::TPoint( const TPoint& in_xOther):Attribute(in_xOther.IsDefined()){
 	if(in_xOther.IsDefined()){
-		stop_id= in_xOther.GetStop();
+    sprintf(stop_id, "%s", in_xOther.GetStop().c_str());
+		
 	}
 }
 TPoint::~TPoint(){};
 
 
 string TPoint::GetStop()const{
-	return stop_id;
+  string out(stop_id);
+	return out;
 }
 
+
+
+void TPoint::SetStop( string stop){
+  sprintf(stop_id, "%s", stop.c_str());
+}
+
+void TPoint::SetStop( STRING_T stop){
+  sprintf(stop_id, "%s", stop);
+}
 /*
 1.1 Overwrite Methods from Attribute
 
@@ -68,7 +85,7 @@ Attribute::StorageType TPoint::GetStorageType() const
 
 size_t TPoint::HashValue() const
 {
-  return (size_t) stop_id.size();
+  return (size_t) sizeof(STRING_T);
 }
 
 
@@ -114,7 +131,7 @@ int TPoint::Compare(const TPoint& in) const
   if (!IsDefined() && !in.IsDefined()) return 0;
   if (!IsDefined() && in.IsDefined()) return -1;
   if (IsDefined() && !in.IsDefined()) return -1;
-  if (stop_id == in.GetStop()) return 1;
+  // if (stop_id == in.GetStop()) return 1;
 
  
  	return 0;
@@ -164,7 +181,8 @@ TPoint& TPoint::operator=( const TPoint& in_xOther )
 	SetDefined(in_xOther.IsDefined());
 	if( IsDefined())
 	{
-		stop_id = in_xOther.GetStop();
+
+    sprintf(stop_id, "%s", in_xOther.GetStop().c_str());
 	}
 	return *this;
 }

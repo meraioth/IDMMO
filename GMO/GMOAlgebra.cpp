@@ -14,8 +14,10 @@
 #include "GenericPoint.h"
 #include "IGenericPoint.h"
 #include "GenericMPoint.h"
+#include "MTPoint.h"
 #include "TPoint.h"
 #include "UTPoint.h"
+#include "Thematic.h"
 #include "QueryProcessor.h"   // needed for implementing value mappings
 #include "AlgebraManager.h"   // e.g., check for certain kind
 #include "../Network/NetworkAlgebra.h"
@@ -33,6 +35,25 @@ extern QueryProcessor* qp;
 
 namespace gmo{
 
+ListExpr
+MTPointProperty()
+{
+  return (nl->TwoElemList(
+            nl->FourElemList(nl->StringAtom("Signature"),
+                             nl->StringAtom("Example Type List"),
+                             nl->StringAtom("List Rep"),
+                             nl->StringAtom("Example List")),
+            nl->FourElemList(nl->StringAtom("-> MAPPING"),
+                             nl->StringAtom("(mtpoint) "),
+                             nl->StringAtom("( u1 ... un ) "),
+        nl->StringAtom("(((i1 i2 TRUE FALSE) (\"PF13\" \"PF14\")) ...)"))));
+};
+
+bool
+CheckMTPoint( ListExpr type, ListExpr& errorInfo )
+{
+  return (nl->IsEqual( type, MTPoint::BasicType() ));
+}
 
 
 TypeConstructor gpointTC(
@@ -100,6 +121,51 @@ TypeConstructor utpointTC(
   UTPoint::Cast,
   UTPoint::SizeOf,
   UTPoint::KindCheck);
+
+TypeConstructor mtpointTC(
+
+        MTPoint::BasicType(),   //name
+        MTPointProperty,        //property function describing signature
+        OutMapping<MTPoint, UTPoint, UTPoint::Out>,
+        InMapping<MTPoint, UTPoint, UTPoint::In>,//Out and In functions
+        0,
+        0,                 //SaveToList and RestoreFromList functions
+        CreateMapping<MTPoint>,
+        DeleteMapping<MTPoint>,     //object creation and deletion
+        OpenAttribute<MTPoint>,
+        SaveAttribute<MTPoint>,      // object open and save
+        CloseMapping<MTPoint>,
+        CloneMapping<MTPoint>, //object close and clone
+        CastMapping<MTPoint>,    //cast function
+        SizeOfMapping<MTPoint>, //sizeof function
+        CheckMTPoint );  //kind checking function
+
+
+TypeConstructor thematicunitTC(
+  ThematicUnit::BasicType(),
+  ThematicUnit::Property,
+  ThematicUnit::Out, ThematicUnit::In,
+  0, 0,
+  ThematicUnit::Create, ThematicUnit::Delete,
+  OpenAttribute<ThematicUnit >,
+  SaveAttribute<ThematicUnit >,
+  ThematicUnit::Close, ThematicUnit::Clone,
+  ThematicUnit::Cast,
+  ThematicUnit::SizeOf,
+  ThematicUnit::KindCheck);
+
+// TypeConstructor thematicpathTC(
+//   ThematicUnit::BasicType(),
+//   ThematicUnit::Property,
+//   ThematicUnit::Out, ThematicUnit::In,
+//   0, 0,
+//   ThematicUnit::Create, ThematicUnit::Delete,
+//   OpenAttribute<ThematicUnit >,
+//   SaveAttribute<ThematicUnit >,
+//   ThematicUnit::Close, ThematicUnit::Clone,
+//   ThematicUnit::Cast,
+//   ThematicUnit::SizeOf,
+//   ThematicUnit::KindCheck);
 
 
 /*
@@ -244,6 +310,8 @@ AddTypeConstructor(&tpointTC);
 tpointTC.AssociateKind(Kind::DATA());
 AddTypeConstructor(&utpointTC);
 utpointTC.AssociateKind(Kind::DATA());
+AddTypeConstructor(&mtpointTC);
+mtpointTC.AssociateKind(Kind::DATA());
 
 
 AddOperator(&creategpointGMO);
