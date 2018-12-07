@@ -49,7 +49,7 @@ GenericMPoint.o: GenericMPoint.cpp GenericMPoint.h \
  /home/secondo/secondo/include/DateTime.h \
  /home/secondo/secondo/include/IndexableAttribute.h \
  /home/secondo/secondo/include/StandardTypes.h \
- /home/secondo/secondo/include/BigInt.h Domain.h \
+ /home/secondo/secondo/include/BigInt.h Domain.h MTPoint.h \
  ../Temporal/TemporalAlgebra.h /home/secondo/secondo/include/NestedList.h \
  /home/secondo/secondo/include/QueryProcessor.h \
  /home/secondo/secondo/include/Algebra.h \
@@ -68,7 +68,8 @@ GenericMPoint.o: GenericMPoint.cpp GenericMPoint.h \
  ../Spatial/HalfSegment.h ../Spatial/AttrType.h ../Spatial/Berlin2WGS.h \
  ../Spatial/SpatialAlgebra.h ../Temporal/../../Tools/Flob/DbArray.h \
  /home/secondo/secondo/include/Progress.h ../Temporal/CellGrid.h \
- ../Temporal/../../include/CharTransform.h ../Network/NetworkAlgebra.h \
+ ../Temporal/../../include/CharTransform.h UTPoint.h TPoint.h \
+ ../Spatial/SpatialAlgebra.h ../Network/NetworkAlgebra.h \
  ../Network/../TupleIdentifier/TupleIdentifier.h \
  ../Network/../Relation-C++/RelationAlgebra.h \
  /home/secondo/secondo/include/Trace.h \
@@ -80,6 +81,6 @@ GenericMPoint.o: GenericMPoint.cpp GenericMPoint.h \
  ../Network/../RTree/RTreeAlgebra.h ../Relation-C++/RelationAlgebra.h \
  ../BTree/BTreeAlgebra.h ../TemporalNet/TemporalNetAlgebra.h \
  ../TemporalNet/../Spatial/Geoid.h \
- ../TemporalNet/../Network/NetworkAlgebra.h ../Spatial/SpatialAlgebra.h \
+ ../TemporalNet/../Network/NetworkAlgebra.h \
  /home/secondo/secondo/include/NList.h \
  /home/secondo/secondo/include/Symbols.h

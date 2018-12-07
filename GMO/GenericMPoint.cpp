@@ -40,16 +40,31 @@ GenericMPoint::GenericMPoint(const GenericMPoint& other) :
 	Attribute(other.IsDefined())
 {
 	if(other.IsDefined()){
-    if(other.GetDefMPoint() == true){
+    if(other.GetDefMPoint()){
 		  mpoint = new MPoint(other.GetMPoint());
+      mtpoint = new MTPoint(false);
       mgpoint = new MGPoint(false);
       def_mpoint = true;
       def_mgpoint = false;
-    }else if (other.GetDefMGPoint() == true ){
+      def_mtpoint = false;
+      domain = FreeSpace;
+    }else if (other.GetDefMGPoint()){
       mgpoint = new MGPoint(other.GetMGPoint());
+      mtpoint = new MTPoint(false);
       mpoint = new MPoint(false);
       def_mgpoint = true;
       def_mpoint = false;
+      def_mtpoint = false;
+      domain = Network;
+
+    }else if(other.GetDefMTPoint()){
+      mtpoint = new MTPoint(other.GetMTPoint());
+      mpoint = new MPoint(false);
+      mgpoint = new MGPoint(false);
+      def_mgpoint = true;
+      def_mpoint = false;
+      def_mtpoint = false;
+      domain = FreeSpace;
     }
 	}else{
 		
@@ -92,6 +107,26 @@ GenericMPoint::GenericMPoint(const MGPoint& _mgpoint) :
 }
 
 
+GenericMPoint::GenericMPoint(const MTPoint& _mtpoint) :
+  Attribute(true) 
+{ 
+ if(_mtpoint.IsDefined() ){
+    domain = FreeSpace;
+    def_mpoint = false;
+    def_mgpoint = false;
+    def_mtpoint = true ;
+
+    mpoint = new MPoint(false);
+    mgpoint = new MGPoint(false);
+    mtpoint = new MTPoint(_mtpoint);
+
+  }else{
+    SetDefined(false);
+
+  }
+}
+
+
 GenericMPoint::GenericMPoint(const bool defined) :
 	Attribute(defined)
 {}
@@ -111,15 +146,23 @@ bool GenericMPoint::GetDefMGPoint()const{
 bool GenericMPoint::GetDefMPoint()const{
   return def_mpoint;
 }
+bool GenericMPoint::GetDefMTPoint()const{
+  return def_mtpoint;
+}
 
 MPoint GenericMPoint::GetMPoint()const{
-  MPoint nuevo(*mpoint);
-  return nuevo;
+  MPoint other(*mpoint);
+  return other;
+}
+
+MTPoint GenericMPoint::GetMTPoint()const{
+  MTPoint other(*mtpoint);
+  return other;
 }
 
 MGPoint GenericMPoint::GetMGPoint()const{
-  MGPoint nuevo(*mgpoint);
-  return nuevo;
+  MGPoint other(*mgpoint);
+  return other;
 }
 
 
@@ -281,6 +324,8 @@ GenericMPoint& GenericMPoint::operator=(const GenericMPoint& other)
     if(other.GetDefMPoint()){
       def_mpoint=true;
       def_mgpoint = false;
+      def_mtpoint=false;
+      mtpoint = new MTPoint(false);
       mpoint = new MPoint(other.GetMPoint());
       mgpoint =new  MGPoint(false);
       domain = FreeSpace;
@@ -288,9 +333,21 @@ GenericMPoint& GenericMPoint::operator=(const GenericMPoint& other)
       
       def_mpoint=false;
       def_mgpoint = true;
+      def_mtpoint=false;
       mpoint = new MPoint(false);
+      mtpoint = new MTPoint(false);
       mgpoint = new MGPoint( other.GetMGPoint());
       domain = Network;
+    }
+    else if(other.GetDefMTPoint()){
+      
+      def_mpoint=false;
+      def_mtpoint=true;
+      def_mgpoint = false;
+      mpoint = new MPoint(false);
+      mgpoint = new MGPoint(false);
+      mtpoint = new MTPoint( other.GetMTPoint());
+      domain = FreeSpace;
     }
     // targetid = other.GetTargetId();
 
@@ -360,6 +417,12 @@ ListExpr GenericMPoint::Out(ListExpr typeInfo, Word value)
       return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
       OutMapping<MGPoint, UGPoint, UGPoint::Out>(nl->TheEmptyList(),SetWord( &mgpoint)));
 
+    }else if( actValue->GetDefMTPoint()){
+
+      MTPoint mgpoint = actValue->GetMTPoint();
+      return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
+      OutMapping<MTPoint, UTPoint, UTPoint::Out>(nl->TheEmptyList(),SetWord( &mgpoint)));
+
     }else //this case should never occur
     return nl->SymbolAtom(Symbol::UNDEFINED());
     
@@ -421,34 +484,46 @@ Word GenericMPoint::In(const ListExpr typeInfo, const ListExpr instance,
 
       if(domain == "FreeSpace"){
         ListExpr mp = nl->Second(instance);
+        NList mp_(nl->Second(instance));
         
+        //Check if mp contains a string or integer as value
+        NList first_elem(nl->First(mp));
+        NList space(first_elem.second());
+        
+        if(space.length()==2 && space.first().isString() && space.second().isString()){
+          MTPoint *value = (MTPoint *)InMapping<MTPoint, UTPoint, UTPoint::In>( nl->TheEmptyList(),
+                                       mp,
+                                       errorPos, errorInfo, correct ).addr;
+          if( correct  ){
+            GenericMPoint* mpt = new GenericMPoint(*value);
+            
+            delete value;
+            return SetWord( mpt );
+          }
+          if(value){
+             delete value;
+          }
+        }else{
 
-        MPoint *value = (MPoint *)InMapping<MPoint, UPoint, InUPoint>( nl->TheEmptyList(),
+          MPoint *value = (MPoint *)InMapping<MPoint, UPoint, InUPoint>( nl->TheEmptyList(),
                                        mp,
                                        errorPos, errorInfo, correct ).addr;
 
-        ostream& o = cout;
 
-        value->Print(o);
-        cout<<endl;
+          cout<<"corret after point :"<<correct<<endl;
+          if( correct  )
+          {
+            
+            GenericMPoint* mpt = new GenericMPoint(*value);
 
-
-        cout<<"corret after point :"<<correct<<endl;
-        if( correct  )
-        {
-          
-          GenericMPoint* mpt = new GenericMPoint(*value);
-          mpt->Print(o);
-          cout<<endl;
-          delete value;
-          return SetWord( mpt );
+            delete value;
+            return SetWord( mpt );
+          }
+          if(value){
+             delete value;
+          }
         }
-        if(value){
-           delete value;
-        }
-      }
-
-      else if(domain == "Network"){
+      }else if(domain == "Network"){
         ListExpr mp = nl->Second(instance);
     
 

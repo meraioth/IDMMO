@@ -1,4 +1,4 @@
-/*
+ /*
 1 Includes*/
 #include "GenericPoint.h"
 #include "ListUtils.h"
@@ -62,17 +62,33 @@ GenericPoint::GenericPoint(const Point& inpoint) :
 { 
   domain= FreeSpace; 
   def_point = true;
+  def_tpoint = false;
   def_gpoint =false;
   point=inpoint;
   gpoint =  GPoint(false);
+  tpoint = TPoint(false);
 }
 GenericPoint::GenericPoint(const GPoint& ingpoint) :
   Attribute(true) 
 { 
   domain = Network;
   def_point = false;
+  def_tpoint = false;
   def_gpoint =true;
   gpoint=ingpoint;
+  tpoint = TPoint(false);
+  point =  Point(false);
+}
+
+GenericPoint::GenericPoint(const TPoint& intpoint) :
+  Attribute(true) 
+{ 
+  domain = FreeSpace;
+  def_point = false;
+  def_tpoint = true;
+  def_gpoint =false;
+  tpoint = intpoint;
+  gpoint=GPoint(false);
   point =  Point(false);
 }
 
@@ -97,6 +113,10 @@ bool GenericPoint::GetDefPoint()const{
   return def_point;
 }
 
+bool GenericPoint::GetDefTPoint()const{
+  return def_tpoint;
+}
+
 Point GenericPoint::GetPoint()const{
   return point;
 }
@@ -105,6 +125,9 @@ GPoint GenericPoint::GetGPoint()const{
   return gpoint;
 }
 
+TPoint GenericPoint::GetTPoint()const{
+  return tpoint;
+}
 
 Domain GenericPoint::GetDomain() const{
 	return domain;
@@ -263,16 +286,27 @@ GenericPoint& GenericPoint::operator=(const GenericPoint& other)
   {
     if(other.GetDefPoint()){
       def_point=true;
+      def_tpoint=false;
       def_gpoint = false;
       point = other.GetPoint();
       gpoint = GPoint(false);
       domain = FreeSpace;
     }else if(other.GetDefGPoint()){
       def_point=false;
+      def_tpoint=false;
       def_gpoint = true;
       point = Point(false);
+      tpoint = TPoint(false);
       gpoint = other.GetGPoint();
       domain = Network;
+    }else if(other.GetDefTPoint()){
+      def_point=false;
+      def_tpoint=false;
+      def_gpoint = false;
+      point = Point(false);
+      tpoint = other.GetTPoint();
+      gpoint = other.GetGPoint();
+      domain = FreeSpace;
     }
     // targetid = other.GetTargetId();
 
@@ -343,7 +377,14 @@ ListExpr GenericPoint::Out(ListExpr typeInfo, Word value)
       return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
       GPoint::OutGPoint(nl->TheEmptyList(),SetWord( &gpoint)));
 
-    }else //this case should never occur
+    }else if( actValue->GetDefTPoint()){
+
+      TPoint tpoint = actValue->GetTPoint();
+      return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
+      TPoint::Out(nl->TheEmptyList(),SetWord( &tpoint)));
+
+    }
+    else //this case should never occur
     return nl->SymbolAtom(Symbol::UNDEFINED());
     
   }
@@ -369,10 +410,11 @@ Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
     }
   }
   else
-  {
+  {   
+
     if (in_list.length() == 2)
     {
-      
+      cout<<"Paso length ==2"<<endl; 
       NList domainList(in_list.first());
       NList spatial_structureList(in_list.second());
       
@@ -395,16 +437,33 @@ Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
       
 
       if(domain == "FreeSpace"){
-        correct = true;
-        //Domain dom = FreeSpace;
-        Point* sS = (Point*) InPoint(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
-        if(correct){
-          GenericPoint* out = new GenericPoint(*sS);
-          return SetWord(out);
+        if(spatial_structureList.hasLength(2) && (spatial_structureList.first().isReal() || spatial_structureList.first().isInt()) 
+        && (spatial_structureList.second().isReal() || spatial_structureList.second().isInt())) //Length 2 means spatial structure is given by a point using coordinates, Length 1 means spatial structure is given by a stop
+        {
+          Point* sS = (Point*) InPoint(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
+          if(correct){
+            GenericPoint* out = new GenericPoint(*sS);
+            return SetWord(out);
+          }
         }
-      }
-
-      else if(domain == "Network"){
+        // else if (spatial_structureList.isString() && spatial_structureList.str()!= "" ){
+        //   cout<<"Entro a TPoint"<<endl;
+        //   TPoint* sS = (TPoint*) TPoint::In(nl->TheEmptyList(),spatial_structureList.listExpr(), errorPos, errorInfo , correct).addr;
+        //   cout<<"Correct : "<<correct<<endl;
+        //   if(correct){
+        //     GenericPoint* out = new GenericPoint(*sS);
+        //     return SetWord(out);
+        //   }
+        // }
+        else if(spatial_structureList.hasLength(1) && spatial_structureList.first().isString() && spatial_structureList.first().str()!= ""){
+           // ListExpr stop = nl->Second(instance);
+           TPoint* sS = (TPoint*) TPoint::In(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
+          if(correct){
+            GenericPoint* out = new GenericPoint(*sS);
+            return SetWord(out);
+          }
+        }
+      }else if(domain == "Network"){
         correct = true;
         //Domain dom = Network;
         GPoint* sS = (GPoint*) GPoint::InGPoint(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;

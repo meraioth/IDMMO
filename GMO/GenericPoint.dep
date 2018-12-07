@@ -68,7 +68,8 @@ GenericPoint.o: GenericPoint.cpp GenericPoint.h \
  ../Spatial/HalfSegment.h ../Spatial/AttrType.h ../Spatial/Berlin2WGS.h \
  ../Spatial/SpatialAlgebra.h ../Temporal/../../Tools/Flob/DbArray.h \
  /home/secondo/secondo/include/Progress.h ../Temporal/CellGrid.h \
- ../Temporal/../../include/CharTransform.h ../Network/NetworkAlgebra.h \
+ ../Temporal/../../include/CharTransform.h TPoint.h \
+ ../Spatial/SpatialAlgebra.h ../Network/NetworkAlgebra.h \
  ../Network/../TupleIdentifier/TupleIdentifier.h \
  ../Network/../Relation-C++/RelationAlgebra.h \
  /home/secondo/secondo/include/Trace.h \
@@ -78,6 +79,5 @@ GenericPoint.o: GenericPoint.cpp GenericPoint.h \
  ../Network/../../Tools/Flob/Flob.h \
  ../Network/../Spatial/SpatialAlgebra.h \
  ../Network/../RTree/RTreeAlgebra.h ../Relation-C++/RelationAlgebra.h \
- ../BTree/BTreeAlgebra.h ../Spatial/SpatialAlgebra.h \
- /home/secondo/secondo/include/NList.h \
+ ../BTree/BTreeAlgebra.h /home/secondo/secondo/include/NList.h \
  /home/secondo/secondo/include/Symbols.h

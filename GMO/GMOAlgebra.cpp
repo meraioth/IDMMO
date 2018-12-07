@@ -154,18 +154,18 @@ TypeConstructor thematicunitTC(
   ThematicUnit::SizeOf,
   ThematicUnit::KindCheck);
 
-// TypeConstructor thematicpathTC(
-//   ThematicUnit::BasicType(),
-//   ThematicUnit::Property,
-//   ThematicUnit::Out, ThematicUnit::In,
-//   0, 0,
-//   ThematicUnit::Create, ThematicUnit::Delete,
-//   OpenAttribute<ThematicUnit >,
-//   SaveAttribute<ThematicUnit >,
-//   ThematicUnit::Close, ThematicUnit::Clone,
-//   ThematicUnit::Cast,
-//   ThematicUnit::SizeOf,
-//   ThematicUnit::KindCheck);
+TypeConstructor thematicpathTC(
+  ThematicPath::BasicType(),
+  ThematicPath::Property,
+  ThematicPath::Out, ThematicPath::In,
+  0, 0,
+  ThematicPath::Create, ThematicPath::Delete,
+  OpenAttribute<ThematicPath >,
+  SaveAttribute<ThematicPath >,
+  ThematicPath::Close, ThematicPath::Clone,
+  ThematicPath::Cast,
+  ThematicPath::SizeOf,
+  ThematicPath::KindCheck);
 
 
 /*
@@ -312,6 +312,10 @@ AddTypeConstructor(&utpointTC);
 utpointTC.AssociateKind(Kind::DATA());
 AddTypeConstructor(&mtpointTC);
 mtpointTC.AssociateKind(Kind::DATA());
+AddTypeConstructor(&thematicunitTC);
+thematicunitTC.AssociateKind(Kind::DATA());
+AddTypeConstructor(&thematicpathTC);
+thematicpathTC.AssociateKind(Kind::DATA());
 
 
 AddOperator(&creategpointGMO);

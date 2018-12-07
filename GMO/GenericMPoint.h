@@ -8,6 +8,7 @@
 #include "StandardTypes.h"
 #include "DateTime.h"
 #include "Domain.h"
+#include "MTPoint.h"
 #include "TemporalAlgebra.h"
 #include "../Network/NetworkAlgebra.h"
 #include "../TemporalNet/TemporalNetAlgebra.h"
@@ -27,6 +28,7 @@ namespace gmo{
 			GenericMPoint();
 			explicit GenericMPoint(const bool defined);
 			GenericMPoint(const MPoint& _mpoint);
+			GenericMPoint(const MTPoint& _mpoint);
 			GenericMPoint(const MGPoint& _mgpoint);
 			GenericMPoint(const GenericMPoint& gP);
 			~GenericMPoint();
@@ -38,10 +40,11 @@ namespace gmo{
 			Domain GetDomain() const;
 			std::string GetStrDomain() const;
 			MPoint GetMPoint() const;
+			MTPoint GetMTPoint() const;
 			MGPoint GetMGPoint() const;
 			bool GetDefMPoint() const;
+			bool GetDefMTPoint() const;
 			bool GetDefMGPoint() const;
-			//Spatial_Structure GetSpatialStructure() const;
 
 			void CopyFrom(const Attribute* right);
 			StorageType GetStorageType() const;
@@ -94,8 +97,6 @@ namespace gmo{
 
 			1.1.1.1 ~Example~
 
-			Provides example string for list representation can be used by external
-			property definitions for part of ~JRouteInterval~ representation.
 
 			*/
 
@@ -104,7 +105,8 @@ namespace gmo{
 		private :
 			MPoint * mpoint;
 			MGPoint * mgpoint ;
-			bool def_mpoint,def_mgpoint;
+			MTPoint * mtpoint;
+			bool def_mpoint,def_mgpoint, def_mtpoint;
 			Domain domain;
 	};
 

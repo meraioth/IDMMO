@@ -295,13 +295,10 @@ bool ThematicUnit::KindCheck ( ListExpr type, ListExpr& errorInfo )
   return checkType(type);
 }
 
-
 int ThematicUnit::SizeOf()
 {
   return sizeof(ThematicUnit);
 }
-
-
 
 
 ListExpr ThematicUnit::Property()
@@ -347,6 +344,12 @@ void ThematicPath::Clear(){
   this->del.isDefined = true;
 }
 
+void ThematicPath::Destroy()
+{
+  canDestroy = true;
+}
+
+
 void ThematicPath::Add(const ThematicUnit& unit){
 
   assert( unit.IsDefined() );
@@ -384,5 +387,224 @@ void ThematicPath::Get( const int i, ThematicUnit &unit ) const
 
 
 
+size_t ThematicPath::Sizeof()const{
+  assert( IsDefined() );
+  return units.Size();
+}
+
+// TO DO
+int ThematicPath::Compare(const Attribute*) const{
+  return 0;
+}
+// TO DO
+bool ThematicPath::Adjacent(const Attribute*) const{
+  return true;
+}
+
+// TO DO
+size_t ThematicPath::HashValue() const{
+
+  return Sizeof();
+}
+
+ostream& ThematicPath::Print(ostream& os) const
+{
+  os << "ThematicPath: ";
+  if (IsDefined())
+  {
+   
+ 
+       
+  }
+  else
+    os << Symbol::UNDEFINED() << endl;
+  return os;
+}
+
+const string ThematicPath::Example()
+{
+  return "2 3";
+}
+
+bool ThematicPath::IsEmpty()const{
+    return (units.Size() == 0);
+
+}
+
+ListExpr ThematicPath::Property()
+{
+  return nl->TwoElemList(
+    nl->FourElemList(
+      nl->StringAtom("Signature"),
+      nl->StringAtom("Example Type List"),
+      nl->StringAtom("List Rep"),
+      nl->StringAtom("Example List")),
+    nl->FourElemList(
+      nl->StringAtom("-> " + Kind::DATA()),
+      nl->StringAtom(BasicType()),
+      nl->TextAtom("()"),
+      nl->StringAtom("("+ Example() +")")));
+}
 
 
+ListExpr ThematicPath::Out( ListExpr typeInfo, Word value )
+{
+  ThematicPath* m = (ThematicPath*)(value.addr);
+  if(! m->IsDefined()){
+    return nl->SymbolAtom(Symbol::UNDEFINED());
+  } else
+  if( m->IsEmpty() )
+    return (nl->TheEmptyList());
+  else
+  {
+    //assert( m->IsOrdered() );
+    ListExpr l = nl->TheEmptyList();
+    ListExpr lastElem = nl->TheEmptyList();
+    ListExpr unitList;
+
+    for( int i = 0; i < m->GetNoComponents(); i++ )
+    {
+      ThematicUnit unit;
+      m->Get( i, unit );
+      unitList = ThematicUnit::Out( nl->TheEmptyList(), SetWord(&unit) );
+      if( l == nl->TheEmptyList() )
+      {
+        l = nl->Cons( unitList, nl->TheEmptyList() );
+        lastElem = l;
+      }
+      else
+        lastElem = nl->Append( lastElem, unitList );
+    }
+    return l;
+  }
+}
+
+
+
+
+Word ThematicPath::In( const ListExpr typeInfo, const ListExpr instance,
+                const int errorPos, ListExpr& errorInfo, bool& correct )
+{
+  int numUnits = 0;
+  if(nl->AtomType(instance)==NoAtom){
+    numUnits = nl->ListLength(instance);
+  }
+  ThematicPath* m = new ThematicPath( numUnits );
+  correct = true;
+  int unitcounter = 0;
+  std::string errmsg;
+
+  // m->StartBulkLoad();
+
+  ListExpr rest = instance;
+  if (nl->AtomType( rest ) != NoAtom)
+  { if(listutils::isSymbolUndefined(rest)){
+       // m->EndBulkLoad();
+       m->SetDefined(false);
+       return SetWord( Address( m ) );
+    } else {
+      correct = false;
+      m->Destroy();
+      delete m;
+      return SetWord( Address( 0 ) );
+    }
+  }
+  else while( !nl->IsEmpty( rest ) )
+  {
+    ListExpr first = nl->First( rest );
+    rest = nl->Rest( rest );
+
+    ThematicUnit *unit = (ThematicUnit*)ThematicUnit::In( nl->TheEmptyList(), first,
+                                errorPos, errorInfo, correct ).addr;
+
+    if ( !correct )
+    {
+      errmsg = "InMapping(): Representation of Unit "
+          + int2string(unitcounter) + " is wrong.";
+      errorInfo = nl->Append(errorInfo, nl->StringAtom(errmsg));
+      m->Destroy();
+      delete m;
+      return SetWord( Address(0) );
+    }
+    if( /* correct && (...)*/ !unit->IsDefined() )
+    {
+      errmsg = "InMapping(): Unit " + int2string(unitcounter) + " is undef.";
+      errorInfo = nl->Append(errorInfo, nl->StringAtom(errmsg));
+      correct = false;
+      delete unit;
+      m->Destroy();
+      delete m;
+      return SetWord( Address(0) );
+    }
+    m->Add( *unit );
+    unitcounter++;
+    delete unit;
+  }
+
+  return SetWord( m );
+}
+
+
+void ThematicPath::Delete( const ListExpr typeInfo, Word& w )
+{
+  ((ThematicPath *)w.addr)->Destroy();
+  delete (ThematicPath *)w.addr;
+  w.addr = 0;
+}
+
+
+void ThematicPath::Close( const ListExpr typeInfo, Word& w )
+{
+  ((ThematicPath *)w.addr)->DeleteIfAllowed();
+  w.addr = 0;
+}
+
+
+Word ThematicPath::Clone( const ListExpr typeInfo, const Word& w )
+{
+   ThematicPath* m = (ThematicPath*)(w.addr);
+   ThematicPath *result;
+
+  if( !m->IsDefined() ){
+    result = new ThematicPath( 0 );
+    result->SetDefined( false );
+    return result;
+  }
+  result = new ThematicPath( m->GetNoComponents() );
+  result->SetDefined( true );
+
+  if(m->GetNoComponents()>0){
+     result->units.resize(m->GetNoComponents());
+  }
+
+  ThematicUnit unit;
+  for( int i = 0; i < m->GetNoComponents(); i++ )
+  {
+    m->Get( i, unit );
+    result->Add( unit );
+  }
+
+  return SetWord( result );
+}
+
+void* ThematicPath::Cast(void* addr)
+{
+  return new (addr) ThematicPath;
+}
+
+
+bool ThematicPath::KindCheck( ListExpr type, ListExpr& errorInfo )
+{
+  return (nl->IsEqual( type, ThematicPath::BasicType() ));
+}
+
+
+int ThematicPath::SizeOf()
+{
+  return sizeof(ThematicPath);
+}
+
+Word ThematicPath::Create( const ListExpr typeInfo )
+{
+  return (SetWord( new ThematicPath( 0 ) ));
+}

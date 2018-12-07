@@ -127,7 +127,6 @@ using a check on bbox.
   // void MergeAdd(const ThematicUnit& unit);
   std::ostream& Print( std::ostream &os ) const;
   bool operator==( const ThematicPath& r ) const;
-
   void Get( const int i, ThematicUnit &unit ) const;
 
   virtual Attribute* Clone() const
@@ -177,7 +176,20 @@ using a check on bbox.
   static const bool checkType(const ListExpr type){
     return listutils::isSymbol(type, BasicType());
   }
-
+  void Destroy();
+  bool IsEmpty() const;
+  static ListExpr Out(ListExpr typeInfo, Word value);
+  static Word In(const ListExpr typeInfo, const ListExpr instance,
+               const int errorPos, ListExpr& errorInfo, bool& correct);
+  static Word Create(const ListExpr typeInfo);
+  static void Delete( const ListExpr typeInfo, Word& w );
+  static void Close( const ListExpr typeInfo, Word& w );
+  static Word Clone( const ListExpr typeInfo, const Word& w );
+  static void* Cast( void* addr );
+  static bool KindCheck ( const ListExpr type, ListExpr& errorInfo );
+  static int SizeOf();
+  static ListExpr Property();
+  static const string Example();
   private:
 
     bool canDestroy;

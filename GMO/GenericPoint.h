@@ -9,6 +9,7 @@
 #include "DateTime.h"
 #include "Domain.h"
 #include "TemporalAlgebra.h"
+#include "TPoint.h"
 #include "../Network/NetworkAlgebra.h"
 #include "../Spatial/SpatialAlgebra.h"
 
@@ -22,6 +23,7 @@ namespace gmo{
 			explicit GenericPoint(const bool defined);
 			GenericPoint(const Point& point);
 			GenericPoint(const GPoint& gpoint);
+			GenericPoint(const TPoint& tpoint);
 			GenericPoint(const GenericPoint& gP);
 			~GenericPoint();
 
@@ -33,8 +35,10 @@ namespace gmo{
 			std::string GetStrDomain() const;
 			Point GetPoint() const;
 			GPoint GetGPoint() const;
+			TPoint GetTPoint() const;
 			bool GetDefPoint() const;
 			bool GetDefGPoint() const;
+			bool GetDefTPoint() const;
 			//Spatial_Structure GetSpatialStructure() const;
 
 			void CopyFrom(const Attribute* right);
@@ -98,7 +102,8 @@ namespace gmo{
 		private :
 			Point point;
 			GPoint gpoint;
-			bool def_point,def_gpoint;
+			TPoint tpoint;
+			bool def_point,def_gpoint,def_tpoint;
 			Domain domain;
 	};
 
