@@ -510,7 +510,6 @@ Word GenericMPoint::In(const ListExpr typeInfo, const ListExpr instance,
                                        errorPos, errorInfo, correct ).addr;
 
 
-          cout<<"corret after point :"<<correct<<endl;
           if( correct  )
           {
             
@@ -531,19 +530,11 @@ Word GenericMPoint::In(const ListExpr typeInfo, const ListExpr instance,
                                        mp ,
                                        errorPos, errorInfo, correct ).addr;
 
-        ostream& o = cout;
 
-        value->Print(o);
-        cout<<endl;
-
-
-        cout<<"corret after point :"<<correct<<endl;
         if( correct  )
         {
           
           GenericMPoint* mpt = new GenericMPoint(*value);
-          mpt->Print(o);
-          cout<<endl;
           delete value;
           return SetWord( mpt );
         }

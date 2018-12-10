@@ -23,6 +23,13 @@
 #include "../Network/NetworkAlgebra.h"
 #include "Point.h"
 #include <typeinfo>
+#include <fstream>
+#include <vector>
+#include <iterator>
+#include <string>
+#include <algorithm>
+#include <boost/algorithm/string.hpp>
+#include <boost/unordered_map.hpp>
 
 
 using namespace std;
@@ -34,6 +41,59 @@ extern NestedList* nl;
 extern QueryProcessor* qp;
 
 namespace gmo{
+
+
+
+/*
+ * A class to read data from a csv file.
+ */
+class CSVReader
+{
+  std::string fileName;
+  std::string delimeter;
+  bool skip_first;
+public:
+  CSVReader(std::string filename, std::string delm = ",", bool skip_first_ = true) :
+      fileName(filename), delimeter(delm), skip_first(skip_first_)
+  { }
+ 
+  // Function to fetch data from a CSV File
+  std::vector<std::vector<std::string> > getData();
+};
+ 
+/*
+* Parses through csv file line by line and returns the data
+* in vector of vector of strings.
+*/
+std::vector<std::vector<std::string> > CSVReader::getData()
+{
+  std::ifstream file(fileName.c_str());
+ 
+  std::vector<std::vector<std::string> > dataList;
+ 
+  std::string line = "";
+
+  if(!skip_first){ // Case when firt row has values
+    getline(file, line);
+    std::vector<std::string> vec;
+    boost::algorithm::split(vec, line, boost::is_any_of(delimeter));
+    dataList.push_back(vec);  
+  }else{
+    getline(file, line);
+  }
+  // Iterate through each line and split the content using delimeter
+  while (getline(file, line))
+  {
+    std::vector<std::string> vec;
+    //cout<<"line :"<<line<<endl;
+    boost::algorithm::split(vec, line, boost::is_any_of(delimeter));
+    dataList.push_back(vec);
+  }
+  // Close the File
+  file.close();
+ 
+  return dataList;
+}
 
 ListExpr
 MTPointProperty()
@@ -288,6 +348,97 @@ Operator creategpointGMO( "creategpoint", creategpointSpec,2 , creategpointMap,
                          creategpointSelect, creategpointTM);
 
 
+/*
+1.1.1 ~map~
+
+Creates an ~mpoint~ from ~mtpoint~ .
+
+*/
+
+const string maps_map_function[1][4] =
+{
+  {CcString::BasicType(), GenericMPoint::BasicType(),CcString::BasicType(),GenericMPoint::BasicType()}
+};
+
+ListExpr map_functionTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,4>(maps_map_function, args);
+
+}
+
+int map_functionSelect(ListExpr args)
+{ 
+  
+
+  return SimpleSelect<1,4>(maps_map_function, args);
+}
+
+int map_functionVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
+
+  if (! domain->IsDefined() || ! file->IsDefined() || ! point->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
+
+  CcString* file = (CcString*) args[0].addr;
+
+  CcString* domain = (CcString*) args[2].addr;
+  
+  GenericMPoint* point = (GenericMPoint*) args[1].addr;
+
+  string file_ =(const char*)(file->GetStringval());
+  CSVReader reader(file_,",");
+ 
+  // Get the data from CSV File
+  std::vector<std::vector<std::string> > dataList = reader.getData();
+
+  if (dataList.size()==0){ //Case when path of file is incorrect or stops file is empty
+    res->SetDefined(false);
+    return 0;
+  }
+
+
+  boost::unordered_map<std::string,double> map_latitude;
+  boost::unordered_map<std::string,double> map_longitude;
+
+  for (unsigned int i = 0; i < dataList.size(); ++i)
+  {
+    map_latitude[dataList[i][0]]= dataList[i][3]; //acording to GTFS stops file
+    map_longitude[dataList[i][0]]= dataList[i][4];
+  }
+
+  
+
+  res->SetDefined(true);
+
+  GenericMPoint* t = new GenericMPoint(false);
+  *res = *t;
+  t->DeleteIfAllowed();
+  
+  return 0;
+}
+
+ValueMapping map_functionMap[] =
+{
+  map_functionVM
+};
+
+const string map_functionSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator map_functionGMO( "mapping", map_functionSpec,1 , map_functionMap,
+                         map_functionSelect, map_functionTM);
+
+
+
+
 }//end of namespace sgraph
 
 /*
@@ -319,6 +470,7 @@ thematicpathTC.AssociateKind(Kind::DATA());
 
 
 AddOperator(&creategpointGMO);
+AddOperator(&map_functionGMO);
 }
 
 GMOAlgebra::~GMOAlgebra(){}
