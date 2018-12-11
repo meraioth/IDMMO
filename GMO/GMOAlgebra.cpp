@@ -28,6 +28,7 @@
 #include <iterator>
 #include <string>
 #include <algorithm>
+#include <cstdlib>
 #include <boost/algorithm/string.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -381,16 +382,16 @@ int map_functionVM( Word* args, Word& result, int message, Word& local,
   result = qp->ResultStorage(s);
   GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
 
-  if (! domain->IsDefined() || ! file->IsDefined() || ! point->IsDefined()){
-    res->SetDefined(false);
-    return 0;
-  }
-
   CcString* file = (CcString*) args[0].addr;
 
   CcString* domain = (CcString*) args[2].addr;
   
   GenericMPoint* point = (GenericMPoint*) args[1].addr;
+
+  if (! domain->IsDefined() || ! file->IsDefined() || ! point->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
 
   string file_ =(const char*)(file->GetStringval());
   CSVReader reader(file_,",");
@@ -406,18 +407,41 @@ int map_functionVM( Word* args, Word& result, int message, Word& local,
 
   boost::unordered_map<std::string,double> map_latitude;
   boost::unordered_map<std::string,double> map_longitude;
-
+  //cout<<"Creando mapa"<<endl;
   for (unsigned int i = 0; i < dataList.size(); ++i)
   {
-    map_latitude[dataList[i][0]]= dataList[i][3]; //acording to GTFS stops file
-    map_longitude[dataList[i][0]]= dataList[i][4];
+    char* aux;
+    char* aux_2;
+    //cout<<"key :"<< dataList[i][0] <<" lat:"<<dataList[i][3]<<" lon"<<dataList[i][4]<<endl; 
+    map_latitude[dataList[i][0]]= std::strtod(dataList[i][3].c_str(),&aux); //acording to GTFS stops file
+    map_longitude[dataList[i][0]]= std::strtod(dataList[i][4].c_str(),&aux_2);
   }
 
-  
+  MPoint newpoint(point->GetMTPoint().GetNoComponents());
+  if(point->GetDefMTPoint()){
+
+    for(int i=0; i<point->GetMTPoint().GetNoComponents(); i++)
+    {
+      UTPoint unit;
+      point->GetMTPoint().Get( i , unit );
+      cout<<"p0 :"<<map_latitude[unit.GetStart().GetStop()]<<map_longitude[unit.GetStart().GetStop()]<<endl;
+      cout<<"p1 :"<<map_latitude[unit.GetEnd().GetStop()]<<map_longitude[unit.GetEnd().GetStop()]<<endl;
+      Point p0(true,map_latitude[unit.GetStart().GetStop()],map_longitude[unit.GetStart().GetStop()]);
+      Point p1(true,map_latitude[unit.GetEnd().GetStop()],map_longitude[unit.GetEnd().GetStop()]);
+
+      p0.Print(cout);
+      p1.Print(cout);
+      UPoint upoint(unit.getTimeInterval(),p0,p1);
+      newpoint.Add(upoint);
+      
+    }
+  }
+
+  //newpoint.Print(cout);
 
   res->SetDefined(true);
 
-  GenericMPoint* t = new GenericMPoint(false);
+  GenericMPoint* t = new GenericMPoint(newpoint);
   *res = *t;
   t->DeleteIfAllowed();
   
