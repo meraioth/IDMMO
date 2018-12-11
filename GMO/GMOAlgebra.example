@@ -6,8 +6,23 @@ Result   : ('FreeSpace', (-73.00 -65.00))
 Tolerance: 0.01%
 
 Operator : mapping
-Number   : 1
+Number   : 2
 Signature: string x genericmpoint x string  -> genericmpoint
-Example  : query mapping('/home/secondo/map.csv',[const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)("PF13" "PF14"))))],'FreeSpace');
+Example  : query mapping("/home/secondo/map.csv",[const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)("PF13" "PF14"))))]);
 Result   : [const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))]
+Tolerance: 0.01%
+
+
+Operator : map2fs
+Number   : 3
+Signature: genericmpoint   -> genericmpoint
+Example  : query map2fs([const genericmpoint value ("Network" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(1 1 65.00 80))))]);
+Result   : [const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))]
+Tolerance: 0.01%
+
+Operator : map2network
+Number   : 4
+Signature: genericmpoint x network  -> genericmpoint
+Example  : query changedomain("Network",[const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))], network);
+Result   : [const genericmpoint value ("Network" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(1 1 65.00 80))))]
 Tolerance: 0.01%

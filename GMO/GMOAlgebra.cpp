@@ -28,6 +28,8 @@
 #include <iterator>
 #include <string>
 #include <algorithm>
+#include <cstdlib>
+#include <fstream> 
 #include <boost/algorithm/string.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -355,15 +357,15 @@ Creates an ~mpoint~ from ~mtpoint~ .
 
 */
 
-const string maps_map_function[1][4] =
+const string maps_map_function[1][3] =
 {
-  {CcString::BasicType(), GenericMPoint::BasicType(),CcString::BasicType(),GenericMPoint::BasicType()}
+  {CcString::BasicType(), GenericMPoint::BasicType(),GenericMPoint::BasicType()}
 };
 
 ListExpr map_functionTM (ListExpr args)
 { 
   
-   return SimpleMaps<1,4>(maps_map_function, args);
+   return SimpleMaps<1,3>(maps_map_function, args);
 
 }
 
@@ -371,7 +373,7 @@ int map_functionSelect(ListExpr args)
 { 
   
 
-  return SimpleSelect<1,4>(maps_map_function, args);
+  return SimpleSelect<1,3>(maps_map_function, args);
 }
 
 int map_functionVM( Word* args, Word& result, int message, Word& local,
@@ -381,45 +383,105 @@ int map_functionVM( Word* args, Word& result, int message, Word& local,
   result = qp->ResultStorage(s);
   GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
 
-  if (! domain->IsDefined() || ! file->IsDefined() || ! point->IsDefined()){
-    res->SetDefined(false);
-    return 0;
-  }
+  CcString* map_function_name = (CcString*) args[0].addr;
 
-  CcString* file = (CcString*) args[0].addr;
-
-  CcString* domain = (CcString*) args[2].addr;
+  // CcString* domain = (CcString*) args[2].addr;
   
   GenericMPoint* point = (GenericMPoint*) args[1].addr;
 
-  string file_ =(const char*)(file->GetStringval());
-  CSVReader reader(file_,",");
- 
-  // Get the data from CSV File
-  std::vector<std::vector<std::string> > dataList = reader.getData();
-
-  if (dataList.size()==0){ //Case when path of file is incorrect or stops file is empty
+  if (! map_function_name->IsDefined() || ! point->IsDefined()){
     res->SetDefined(false);
     return 0;
   }
 
+  string map_function_str =(const char*)(map_function_name->GetStringval());
 
-  boost::unordered_map<std::string,double> map_latitude;
-  boost::unordered_map<std::string,double> map_longitude;
-
-  for (unsigned int i = 0; i < dataList.size(); ++i)
-  {
-    map_latitude[dataList[i][0]]= dataList[i][3]; //acording to GTFS stops file
-    map_longitude[dataList[i][0]]= dataList[i][4];
-  }
+  std::transform(map_function_str.begin(), map_function_str.end(), map_function_str.begin(), ::tolower);
 
   
+  if(point->GetDefMTPoint()){
+    if(map_function_str == "identity"){
+      res->SetDefined(true);
+      *res = *point;
+      point->DeleteIfAllowed();
+      return 0;
+    }else{
 
-  res->SetDefined(true);
+      std::ifstream test(map_function_str.c_str()); 
+      if (!test)
+      {
+          std::cout << "The file for mapping doesn't exist" << std::endl;
+          return 0;
+      }
 
-  GenericMPoint* t = new GenericMPoint(false);
-  *res = *t;
-  t->DeleteIfAllowed();
+      CSVReader reader(map_function_str,",");
+     
+      // Get the data from CSV File
+      std::vector<std::vector<std::string> > dataList = reader.getData();
+
+      if (dataList.size()==0){ //Case when path of file is incorrect or stops file is empty
+        res->SetDefined(false);
+        return 0;
+      }
+
+
+      boost::unordered_map<std::string,double> map_latitude;
+      boost::unordered_map<std::string,double> map_longitude;
+      
+      for (unsigned int i = 0; i < dataList.size(); ++i)
+      {
+        char* aux;
+        char* aux_2;
+        
+        map_latitude[dataList[i][0]]= std::strtod(dataList[i][3].c_str(),&aux); //acording to GTFS stops file
+        map_longitude[dataList[i][0]]= std::strtod(dataList[i][4].c_str(),&aux_2);
+      }
+
+      MPoint newpoint(point->GetMTPoint().GetNoComponents());
+
+      if(point->GetDefMTPoint()){
+
+        for(int i=0; i<point->GetMTPoint().GetNoComponents(); i++)
+        {
+          UTPoint unit;
+          point->GetMTPoint().Get( i , unit );
+          Point p0(true,map_latitude[unit.GetStart().GetStop()],map_longitude[unit.GetStart().GetStop()]);
+          Point p1(true,map_latitude[unit.GetEnd().GetStop()],map_longitude[unit.GetEnd().GetStop()]);
+          UPoint upoint(unit.getTimeInterval(),p0,p1);
+          newpoint.Add(upoint);
+          
+        }
+      }
+
+
+      res->SetDefined(true);
+
+      GenericMPoint* t = new GenericMPoint(newpoint);
+      *res = *t;
+      t->DeleteIfAllowed();
+      return 0;
+    }
+
+  }else if(point->GetDefMGPoint()){
+    if(map_function_str == "identity"){
+      res->SetDefined(true);
+      *res = *point;
+      point->DeleteIfAllowed();
+      return 0;
+    }else{ // Other case not existing yet, which takes some identifiers and needs to map in network 
+      res->SetDefined(false);
+
+      return 0;
+    }
+
+  }else if(point->GetDefMPoint()){ // Means that origin GenericMPoint has a MPoint and the domain target is freespace. Return same GenericMPoint
+
+    res->SetDefined(true);
+    *res = *point;
+    point->DeleteIfAllowed();
+    return 0;
+
+  }
   
   return 0;
 }
@@ -435,6 +497,85 @@ const string map_functionSpec =
 
 Operator map_functionGMO( "mapping", map_functionSpec,1 , map_functionMap,
                          map_functionSelect, map_functionTM);
+
+
+
+/*
+1.1.1 ~map2fs~
+
+Creates an ~mpoint~ from ~mgpoint~ as GenericMPoint .
+
+*/
+
+const string map2fs_function[1][2] =
+{
+  { GenericMPoint::BasicType(),GenericMPoint::BasicType()}
+};
+
+ListExpr map2fs_functionTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,2>(map2fs_function, args);
+
+}
+
+int map2fs_functionSelect(ListExpr args)
+{ 
+  
+
+  return SimpleSelect<1,2>(map2fs_function, args);
+}
+
+int map2fs_functionVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
+  
+  GenericMPoint* point = (GenericMPoint*) args[0].addr;
+
+  if (! point->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
+
+  
+  
+  if(point->GetDefMGPoint()){ 
+
+    MGPoint mgpoint(point->GetMGPoint());
+  
+    MPoint* temp = new MPoint(true);
+
+    mgpoint.Mgpoint2mpoint(temp);
+
+    GenericMPoint* outpoint =  new GenericMPoint(temp);
+
+    *res = *outpoint;
+    return 0;
+
+     
+
+  }else{
+    cout<<"This operator needs GenericMPoint contains a MGPoint"<<endl;
+    return 0;
+  }
+  
+  return 0;
+}
+
+ValueMapping map2fs_functionMap[] =
+{
+  map2fs_functionVM
+};
+
+const string map2fs_functionSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator map2fs_functionGMO( "map2fs", map2fs_functionSpec,1 , map2fs_functionMap,
+                         map2fs_functionSelect, map2fs_functionTM);
 
 
 
@@ -471,6 +612,7 @@ thematicpathTC.AssociateKind(Kind::DATA());
 
 AddOperator(&creategpointGMO);
 AddOperator(&map_functionGMO);
+AddOperator(&map2fs_functionGMO);
 }
 
 GMOAlgebra::~GMOAlgebra(){}
