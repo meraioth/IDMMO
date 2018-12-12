@@ -29,7 +29,6 @@
 #include <string>
 #include <algorithm>
 #include <cstdlib>
-#include <fstream> 
 #include <boost/algorithm/string.hpp>
 #include <boost/unordered_map.hpp>
 
@@ -83,6 +82,8 @@ std::vector<std::vector<std::string> > CSVReader::getData()
   }else{
     getline(file, line);
   }
+
+  cout<<"Filename:"<<fileName<<"Linea :"<<line<<endl;
   // Iterate through each line and split the content using delimeter
   while (getline(file, line))
   {
@@ -396,23 +397,17 @@ int map_functionVM( Word* args, Word& result, int message, Word& local,
 
   string map_function_str =(const char*)(map_function_name->GetStringval());
 
-  std::transform(map_function_str.begin(), map_function_str.end(), map_function_str.begin(), ::tolower);
+  string map_function_str_copy = map_function_str;
+  std::transform(map_function_str_copy.begin(), map_function_str_copy.end(), map_function_str_copy.begin(), ::tolower);
 
   
   if(point->GetDefMTPoint()){
-    if(map_function_str == "identity"){
+    if(map_function_str_copy == "identity"){
       res->SetDefined(true);
       *res = *point;
       point->DeleteIfAllowed();
       return 0;
     }else{
-
-      std::ifstream test(map_function_str.c_str()); 
-      if (!test)
-      {
-          std::cout << "The file for mapping doesn't exist" << std::endl;
-          return 0;
-      }
 
       CSVReader reader(map_function_str,",");
      
@@ -445,8 +440,8 @@ int map_functionVM( Word* args, Word& result, int message, Word& local,
         {
           UTPoint unit;
           point->GetMTPoint().Get( i , unit );
-          Point p0(true,map_latitude[unit.GetStart().GetStop()],map_longitude[unit.GetStart().GetStop()]);
-          Point p1(true,map_latitude[unit.GetEnd().GetStop()],map_longitude[unit.GetEnd().GetStop()]);
+          Point p0(true,map_longitude[unit.GetStart().GetStop()],map_latitude[unit.GetStart().GetStop()]);
+          Point p1(true,map_longitude[unit.GetEnd().GetStop()],map_latitude[unit.GetEnd().GetStop()]);
           UPoint upoint(unit.getTimeInterval(),p0,p1);
           newpoint.Add(upoint);
           
