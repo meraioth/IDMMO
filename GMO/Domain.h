@@ -29,7 +29,7 @@ namespace gmo{
 
 
 
-enum Domain {FreeSpace, Network, Stop};
+enum Domain {FreeSpace, Network};
 
 } // end of namespace jnetwork
 

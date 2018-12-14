@@ -9,7 +9,6 @@
 #include "DateTime.h"
 #include "Domain.h"
 #include "MTPoint.h"
-#include "TemporalAlgebra.h"
 #include "../Network/NetworkAlgebra.h"
 #include "../TemporalNet/TemporalNetAlgebra.h"
 #include "../Spatial/SpatialAlgebra.h"

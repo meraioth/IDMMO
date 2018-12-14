@@ -6,7 +6,6 @@
 #include "NList.h"
 #include "Symbols.h"
 #include "StandardTypes.h"
-#include "SpatialAlgebra.h"
 #include "../Network/NetworkAlgebra.h"
 #include "../Spatial/SpatialAlgebra.h"
 #include "DateTime.h"
@@ -185,11 +184,7 @@ string GenericMPoint::GetStrDomain() const{
         return "Network";
         break;
       }
-      case Stop :
-      {
-        return "Stop";
-        break; 
-      }
+      
     }
     return "None";
 }

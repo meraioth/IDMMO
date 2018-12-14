@@ -8,7 +8,7 @@
 #include "StandardTypes.h"
 #include "DateTime.h"
 #include "Domain.h"
-#include "TemporalAlgebra.h"
+#include "../Temporal/TemporalAlgebra.h"
 #include "UTPoint.h"
 #include "TPoint.h"
 #include "../Network/NetworkAlgebra.h"

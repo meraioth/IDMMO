@@ -5,7 +5,7 @@
 #include "StandardTypes.h"
 #include "DateTime.h"
 #include "Domain.h"
-#include "TemporalAlgebra.h"
+#include "../Temporal/TemporalAlgebra.h"
 #include "UTPoint.h"
 #include "../Network/NetworkAlgebra.h"
 #include "../Spatial/SpatialAlgebra.h"
@@ -351,7 +351,7 @@ int UTPoint::SizeOf()
 
 
 
-			const Rectangle<3> UTPoint::BoundingBox(const Geoid* geoid /*=0*/)const { return Rectangle<3>(false, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);}
+			const Rectangle<3> UTPoint::BoundingBox(const Geoid* geoid /*=0*/)const { return Rectangle<3>(false);}
 
 
 			 double UTPoint::Distance(const Rectangle<3>& rect,const Geoid* geoid) const{return 0.0f;}

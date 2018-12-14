@@ -5,7 +5,7 @@
 #include "StandardTypes.h"
 #include "DateTime.h"
 #include "Domain.h"
-#include "TemporalAlgebra.h"
+#include "../Temporal/TemporalAlgebra.h"
 #include "MTPoint.h"
 #include "TPoint.h"
 #include "UTPoint.h"

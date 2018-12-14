@@ -7,7 +7,7 @@
 #include "Attribute.h"
 #include "StandardTypes.h"
 #include "DateTime.h"
-#include "TemporalAlgebra.h"
+#include "../Temporal/TemporalAlgebra.h"
 #include "TPoint.h"
 #include "../Spatial/SpatialAlgebra.h"
 

@@ -8,7 +8,7 @@
 #include "StandardTypes.h"
 #include "DateTime.h"
 #include "Domain.h"
-#include "TemporalAlgebra.h"
+#include "../TemporalNet/TemporalNetAlgebra.h"
 #include "../Network/NetworkAlgebra.h"
 #include "../Spatial/SpatialAlgebra.h"
 
