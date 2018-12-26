@@ -6,8 +6,10 @@
 #include "NList.h"
 #include "Symbols.h"
 #include "StandardTypes.h"
-#include "../Network/NetworkAlgebra.h"
-#include "../Spatial/SpatialAlgebra.h"
+//#include "../Network/NetworkAlgebra.h"
+//#include "../Spatial/SpatialAlgebra.h"
+#include "NetworkAlgebra.h"
+#include "SpatialAlgebra.h"
 #include "DateTime.h"
 #include <typeinfo>
 

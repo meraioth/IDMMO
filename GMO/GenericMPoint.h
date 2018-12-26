@@ -41,6 +41,7 @@ namespace gmo{
 			MPoint GetMPoint() const;
 			MTPoint GetMTPoint() const;
 			MGPoint GetMGPoint() const;
+			MGPoint* GetMGPoint2() const;
 			bool GetDefMPoint() const;
 			bool GetDefMTPoint() const;
 			bool GetDefMGPoint() const;

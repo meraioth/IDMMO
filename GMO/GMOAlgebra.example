@@ -1,4 +1,4 @@
-Operator : creategp
+Operator : creategenericmpoint
 Number   : 1
 Signature: string x {point,gpoint}  -> genericpoint
 Example  : query creategp('FreeSpace', (-73.00 -65.00));
@@ -23,6 +23,37 @@ Tolerance: 0.01%
 Operator : map2network
 Number   : 4
 Signature: genericmpoint x network  -> genericmpoint
-Example  : query changedomain("Network",[const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))], network);
+Example  : query map2network("Network",[const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))], network);
 Result   : [const genericmpoint value ("Network" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(1 1 65.00 80))))]
+Tolerance: 0.01%
+
+
+
+Operator : distance_point
+Number   : 5
+Signature: genericpoint x genericpoint  -> real
+Example  : query distance_point([const genericpoint value ("Network",[const point value (-73.00 -65.00))])],[const genericpoint value ("Network",[const point value (-73.00 -65.80))])]);
+Result   : 2.3
+Tolerance: 0.01%
+
+Operator : creategenericpoint
+Number   : 6
+Signature: string x {point,gpoint, tpoint}  -> genericpoint
+Example  : query creategenericpoint('FreeSpace', (-73.00 -65.00));
+Result   : ("FreeSpace", (-73.00 -65.00))
+Tolerance: 0.01%
+
+Operator : gmo_present
+Number   : 7
+Signature: ( genericmpoint Instant ) -> bool, ( genericmpoint Periods ) -> bool 
+Example  : query gmo_present([const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))],[const instant value "2007-01-01-10:10"]);
+Result   : TRUE
+Tolerance: 0.01%
+
+
+Operator : gmo_between
+Number   : 8
+Signature:  genericmpoint x generipoint x generipoint -> bool
+Example  : query gmo_between([const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(10.0 10.0 10.0 20.0))))],[const genericpoint value ("FreeSpace" (5.0 10.0))],[const genericpoint value ("FreeSpace" (15.0 50.0))])
+Result   : TRUE
 Tolerance: 0.01%

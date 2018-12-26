@@ -5,10 +5,13 @@
 #include "StandardTypes.h"
 #include "DateTime.h"
 #include "Domain.h"
-#include "../Temporal/TemporalAlgebra.h"
 #include "UTPoint.h"
-#include "../Network/NetworkAlgebra.h"
-#include "../Spatial/SpatialAlgebra.h"
+// #include "../Network/NetworkAlgebra.h"
+// #include "../Spatial/SpatialAlgebra.h"
+// #include "../Temporal/TemporalAlgebra.h"
+#include "NetworkAlgebra.h"
+#include "SpatialAlgebra.h"
+#include "TemporalAlgebra.h"
 
 using namespace network;
 using namespace datetime;

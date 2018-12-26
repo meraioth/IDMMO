@@ -5,9 +5,11 @@
 #include "StandardTypes.h"
 #include "DateTime.h"
 #include "Domain.h"
-#include "../Temporal/TemporalAlgebra.h"
 #include "Thematic.h"
-#include "../Spatial/SpatialAlgebra.h"
+// #include "../Spatial/SpatialAlgebra.h"
+// #include "../Temporal/TemporalAlgebra.h"
+#include "SpatialAlgebra.h"
+#include "TemporalAlgebra.h"
 
 using namespace datetime;
 using namespace temporalalgebra;

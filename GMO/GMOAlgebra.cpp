@@ -20,7 +20,8 @@
 #include "Thematic.h"
 #include "QueryProcessor.h"   // needed for implementing value mappings
 #include "AlgebraManager.h"   // e.g., check for certain kind
-#include "../Network/NetworkAlgebra.h"
+//#include "../Network/NetworkAlgebra.h"
+#include "NetworkAlgebra.h"
 #include <typeinfo>
 #include <fstream>
 #include <vector>
@@ -52,13 +53,13 @@ class CSVReader
   std::string fileName;
   std::string delimeter;
   bool skip_first;
-public:
-  CSVReader(std::string filename, std::string delm = ",", bool skip_first_ = true) :
-      fileName(filename), delimeter(delm), skip_first(skip_first_)
-  { }
- 
-  // Function to fetch data from a CSV File
-  std::vector<std::vector<std::string> > getData();
+  public:
+    CSVReader(std::string filename, std::string delm = ",", bool skip_first_ = true) :
+        fileName(filename), delimeter(delm), skip_first(skip_first_)
+    { }
+   
+    // Function to fetch data from a CSV File
+    std::vector<std::vector<std::string> > getData();
 };
  
 /*
@@ -81,13 +82,10 @@ std::vector<std::vector<std::string> > CSVReader::getData()
   }else{
     getline(file, line);
   }
-
-  cout<<"Filename:"<<fileName<<"Linea :"<<line<<endl;
   // Iterate through each line and split the content using delimeter
   while (getline(file, line))
   {
     std::vector<std::string> vec;
-    //cout<<"line :"<<line<<endl;
     boost::algorithm::split(vec, line, boost::is_any_of(delimeter));
     dataList.push_back(vec);
   }
@@ -408,6 +406,36 @@ MPoint MTPoint2MPoint(GenericMPoint* point,string map_function_str){
   return newpoint;
 }
 
+double DistancePoint(GenericPoint* point0, GenericPoint* point1){
+
+  switch(point0->GetDomain()){
+
+    case FreeSpace:{
+      const Geoid* geoid = 0;
+      double dist = -1.0;
+      dist = point0->GetPoint().Distance(point1->GetPoint(),geoid);
+      return dist;
+      break;
+    }
+    case Network:{
+
+      GPoint* arg1_= new GPoint(point0->GetGPoint());
+      GPoint* arg2_= new GPoint(point1->GetGPoint());
+      double dist_ = -1.0;
+      
+       dist_ = arg1_->Distance(arg2_);
+       return dist_;
+      
+     break;
+   }
+    default:
+      return -1.0;
+    }
+
+
+   return -1.0;
+}
+
 bool
 CheckMTPoint( ListExpr type, ListExpr& errorInfo )
 {
@@ -476,22 +504,21 @@ TypeConstructor utpointTC(
   UTPoint::SizeOf,
   UTPoint::KindCheck);
 TypeConstructor mtpointTC(
-
-        MTPoint::BasicType(),   //name
-        MTPointProperty,        //property function describing signature
-        OutMapping<MTPoint, UTPoint, UTPoint::Out>,
-        InMapping<MTPoint, UTPoint, UTPoint::In>,//Out and In functions
-        0,
-        0,                 //SaveToList and RestoreFromList functions
-        CreateMapping<MTPoint>,
-        DeleteMapping<MTPoint>,     //object creation and deletion
-        OpenAttribute<MTPoint>,
-        SaveAttribute<MTPoint>,      // object open and save
-        CloseMapping<MTPoint>,
-        CloneMapping<MTPoint>, //object close and clone
-        CastMapping<MTPoint>,    //cast function
-        SizeOfMapping<MTPoint>, //sizeof function
-        CheckMTPoint );  //kind checking function
+  MTPoint::BasicType(),   //name
+  MTPointProperty,        //property function describing signature
+  OutMapping<MTPoint, UTPoint, UTPoint::Out>,
+  InMapping<MTPoint, UTPoint, UTPoint::In>,//Out and In functions
+  0,
+  0,                 //SaveToList and RestoreFromList functions
+  CreateMapping<MTPoint>,
+  DeleteMapping<MTPoint>,     //object creation and deletion
+  OpenAttribute<MTPoint>,
+  SaveAttribute<MTPoint>,      // object open and save
+  CloseMapping<MTPoint>,
+  CloneMapping<MTPoint>, //object close and clone
+  CastMapping<MTPoint>,    //cast function
+  SizeOfMapping<MTPoint>, //sizeof function
+  CheckMTPoint );  //kind checking function
 TypeConstructor thematicunitTC(
   ThematicUnit::BasicType(),
   ThematicUnit::Property,
@@ -519,7 +546,134 @@ TypeConstructor thematicpathTC(
 
 
 /*
-1.1.1 ~creategint~
+1.1.1 ~creategenericpoint~
+
+Creates an ~gint~ from two ~int~ (source identifier, target identifier).
+
+*/
+
+const string maps_creategenericpoint[3][2] =
+{
+
+  {TPoint::BasicType(), GenericPoint::BasicType()},
+  {GPoint::BasicType(), GenericPoint::BasicType()},
+  {Point::BasicType(),GenericPoint::BasicType()}
+  
+};
+
+ListExpr creategenericpointTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<3,2>(maps_creategenericpoint, args);
+
+}
+
+int creategenericpointSelect(ListExpr args)
+{ 
+  
+
+  return SimpleSelect<3,2>(maps_creategenericpoint, args);
+}
+
+int creategenericpoint_pointVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  GenericPoint* res = static_cast<GenericPoint*> (result.addr);
+
+  Point* point = (Point*) args[0].addr;
+  
+  if ( ! point->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
+  
+  res->SetDefined(true);
+
+  GenericPoint* t = new GenericPoint(*point);
+  *res = *t;
+  t->DeleteIfAllowed();
+  
+  return 0;
+}
+
+
+int creategenericpoint_gpointVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  
+  result = qp->ResultStorage(s);
+  GenericPoint* res = static_cast<GenericPoint*> (result.addr);
+
+  GPoint* point = (GPoint*) args[0].addr;
+  //res->Clear();
+  if ( ! point->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
+  
+  res->SetDefined(true);
+
+  GenericPoint* t = new GenericPoint(*point);
+  *res = *t;
+  t->DeleteIfAllowed();
+  
+  return 0;
+}
+
+
+int creategenericpoint_tpointVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  cout<<"creategenericpoint_tpointVM"<<endl;
+  result = qp->ResultStorage(s);
+  GenericPoint* res = static_cast<GenericPoint*> (result.addr);
+
+  TPoint* point = (TPoint*) args[0].addr;
+  //res->Clear();
+  point->Print(cout);
+  if ( ! point->IsDefined()){
+    cout<<"Point is not defined"<<endl;
+    res->SetDefined(false);
+    return 0;
+  }
+  
+  //res->SetDefined(true);
+
+  //GenericPoint* t = new GenericPoint(*point);
+  //*res = *t;
+  res=new GenericPoint(*point);
+  res->GetTPoint().Print(cout);
+  cout<<endl;
+  //t->DeleteIfAllowed();
+  
+  return 0;
+}
+
+ValueMapping creategenericpointMap[] =
+{ creategenericpoint_tpointVM,
+  creategenericpoint_gpointVM,
+  creategenericpoint_pointVM,
+
+};
+
+const string creategenericpointSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator creategenericpointGMO( "creategenericpoint", creategenericpointSpec, 3 , creategenericpointMap,
+                         creategenericpointSelect, creategenericpointTM);
+
+
+
+
+
+
+/*
+1.1.1 ~creategenericmpoint~
 
 Creates an ~gint~ from two ~int~ (source identifier, target identifier).
 
@@ -527,9 +681,10 @@ Creates an ~gint~ from two ~int~ (source identifier, target identifier).
 
 const string maps_creategenericmpoint[3][2] =
 {
-  {MPoint::BasicType(),GenericMPoint::BasicType()},
+
+  {MTPoint::BasicType(), GenericMPoint::BasicType()},
   {MGPoint::BasicType(), GenericMPoint::BasicType()},
-  {MTPoint::BasicType(), GenericMPoint::BasicType()}
+  {MPoint::BasicType(),GenericMPoint::BasicType()}
   
 };
 
@@ -621,17 +776,17 @@ int creategenericmpoint_mtpointVM( Word* args, Word& result, int message, Word& 
 }
 
 ValueMapping creategenericmpointMap[] =
-{
-  creategenericmpoint_mpointVM,
+{ creategenericmpoint_mtpointVM,
   creategenericmpoint_mgpointVM,
-  creategenericmpoint_mtpointVM,
+  creategenericmpoint_mpointVM,
+
 };
 
 const string creategenericmpointSpec =
   "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
   "(<text><text>query creategint(sourceid,targetid)</text--->))";
 
-Operator creategenericmpointGMO( "creategenericmpoint", creategenericmpointSpec,3 , creategenericmpointMap,
+Operator creategenericmpointGMO( "creategenericmpoint", creategenericmpointSpec, 3 , creategenericmpointMap,
                          creategenericmpointSelect, creategenericmpointTM);
 
 
@@ -649,7 +804,7 @@ Gives distance between 2 genericmpoint in km. In order to use this operator , ge
 
 const string maps_distance[1][3] =
 {
-  {GenericMPoint::BasicType(),GenericMPoint::BasicType(),CcReal::BasicType()},
+  {GenericPoint::BasicType(),GenericPoint::BasicType(),CcReal::BasicType()},
   
 };
 
@@ -674,13 +829,13 @@ int distanceVM( Word* args, Word& result, int message, Word& local,
   result = qp->ResultStorage(s);
   CcReal* res = static_cast<CcReal*> (result.addr);
 
-  GenericMPoint* point0 = (GenericMPoint*) args[0].addr;
+  GenericPoint* point0 = (GenericPoint*) args[0].addr;
 
-  GenericMPoint* point1 = (GenericMPoint*) args[1].addr;
+  GenericPoint* point1 = (GenericPoint*) args[1].addr;
 
 
   
-  if ( ! point0->IsDefined()|| ! point1->IsDefined() || (point0->GetDomain() != point1->GetDomain()) || point0->GetDefMTPoint()){
+  if ( ! point0->IsDefined()|| ! point1->IsDefined() || (point0->GetDomain() != point1->GetDomain()) || point0->GetDefTPoint()){
     cout<<"genericmpoint should have same representation to calculate distance"<<endl;
     res->SetDefined(false);
     return 0;
@@ -688,23 +843,13 @@ int distanceVM( Word* args, Word& result, int message, Word& local,
   
   res->SetDefined(true);
 
-  MPoint p0(false);
-  MPoint p1(false);
+
+
+  double aux = DistancePoint(point0,point1);
 
   
-  switch(point0->GetDomain()){
 
-    case FreeSpace:
-      
-      break;
-
-    case Network:
-      break;
-
-
-  }
-
-  CcReal* t = new CcReal(false);
+  CcReal* t = new CcReal(aux);
   *res = *t;
   t->DeleteIfAllowed();
   
@@ -720,7 +865,7 @@ const string distanceSpec =
   "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
   "(<text><text>query creategint(sourceid,targetid)</text--->))";
 
-Operator distanceGMO( "distance_generic", distanceSpec,1 , distanceMap,
+Operator distanceGMO( "distance_point", distanceSpec,1 , distanceMap,
                          distanceSelect, distanceTM);
 
 
@@ -866,6 +1011,7 @@ int map2fs_functionVM( Word* args, Word& result, int message, Word& local,
   
   GenericMPoint* point = (GenericMPoint*) args[0].addr;
 
+
   if (! point->IsDefined()){
     res->SetDefined(false);
     return 0;
@@ -875,15 +1021,19 @@ int map2fs_functionVM( Word* args, Word& result, int message, Word& local,
   
   if(point->GetDefMGPoint()){ 
 
-    MGPoint mgpoint(point->GetMGPoint());
+    MGPoint mgpoint(false);
   
     MPoint* temp = new MPoint(true);
 
-    mgpoint.Mgpoint2mpoint(temp);
+    point->GetMGPoint2()->Mgpoint2mpoint(temp);
 
-    GenericMPoint* outpoint =  new GenericMPoint(temp);
+    GenericMPoint* outpoint =  new GenericMPoint(*temp);
+
+    outpoint->GetMPoint().Print(cout);
+
 
     *res = *outpoint;
+    delete(outpoint);
     return 0;
 
      
@@ -989,6 +1139,215 @@ const string map2network_functionSpec =
 Operator map2network_functionGMO( "map2network", map2network_functionSpec,1 , map2network_functionMap,
                          map2network_functionSelect, map2network_functionTM);
 
+/*
+1.1.1 ~present~
+
+Return true if genericmpoint is alive in the Period or Instant
+*/
+
+
+const string maps_present[2][3] =
+{
+  {GenericMPoint::BasicType(),Instant::BasicType(),CcBool::BasicType()},
+  {GenericMPoint::BasicType(),Periods::BasicType(),CcBool::BasicType()}
+  
+};
+
+ListExpr presentTM (ListExpr args)
+{ 
+  cout<<"presentTM"<<endl;
+  
+   return SimpleMaps<2,3>(maps_present, args);
+
+}
+
+int presentSelect(ListExpr args)
+{ 
+  
+  cout<<"presentSelect"<<endl;
+   return SimpleSelect<2,3>(maps_present, args);
+}
+
+int presentIVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  cout<<"Entro a Instant"<<endl; 
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  GenericMPoint* point0 = (GenericMPoint*) args[0].addr;
+
+  Instant* instant = (Instant*) args[1].addr;
+
+  if ( ! point0->IsDefined()|| ! instant->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  if(point0->GetDefMPoint()){
+    res->Set( true, point0->GetMPoint().Present( *instant ) );
+  }else if(point0->GetDefMGPoint()){
+    res->Set( true, point0->GetMGPoint().Present( instant ) );
+  }else if(point0->GetDefMTPoint()){
+    res->Set( true, point0->GetMTPoint().Present( *instant ) );
+  }
+  
+  
+  return 0;
+}
+
+
+int presentPVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  GenericMPoint* point0 = (GenericMPoint*) args[0].addr;
+
+  Periods* periods = (Periods*) args[1].addr;
+
+
+  
+  if ( ! point0->IsDefined()|| ! periods->IsDefined()  || periods->IsEmpty() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  
+  if(point0->GetDefMPoint()){
+    res->Set( true, point0->GetMPoint().Present( *periods ) );
+  }else if(point0->GetDefMGPoint()){
+    res->Set( true, point0->GetMGPoint().Present( periods ) );
+  }else if(point0->GetDefMTPoint()){
+    res->Set( true, point0->GetMTPoint().Present( *periods ) );
+  }
+  
+  return 0;
+}
+
+ValueMapping presentMap[] =
+{
+  presentIVM,
+  presentPVM
+};
+
+const string presentSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator presentGMO( "gmo_present", presentSpec,2 , presentMap,
+                         presentSelect, presentTM);
+
+
+/*
+1.1.1 ~gmo_between~
+
+Return true if genericmpoint is between two identifiers
+*/
+
+
+const string maps_between[1][4] =
+{
+  {GenericMPoint::BasicType(),GenericPoint::BasicType(),GenericPoint::BasicType(),CcBool::BasicType()},
+  
+};
+
+ListExpr betweenTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,4>(maps_between, args);
+
+}
+
+int betweenSelect(ListExpr args)
+{ 
+
+   return SimpleSelect<1,4>(maps_between, args);
+}
+
+int betweenVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  //CcBool* res = static_cast<CcBool*> (result.addr);
+
+  GenericMPoint* mpoint = (GenericMPoint*) args[0].addr;
+
+  GenericPoint* point0 = (GenericPoint*) args[1].addr;
+  GenericPoint* point1 = (GenericPoint*) args[2].addr;
+
+  if ( ! mpoint->IsDefined()|| ! point0->IsDefined() || ! point1->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  if(mpoint->GetDefMPoint()){
+
+    if(point0->GetDefPoint() && point1->GetDefPoint()){
+
+      Rectangle<2> accubbox(true,point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY());
+      Line line(0) ;
+      mpoint->GetMPoint().Trajectory(line);
+      if( accubbox.IsDefined() && line.IsDefined() )
+      {
+        Region reg( accubbox );
+        ((CcBool *)result.addr)->Set( true, line.Intersects(reg));
+      }
+    }else{
+      ((CcBool *)result.addr)->Set( false, false );
+      return 0;
+    }
+
+  }else if(mpoint->GetDefMGPoint()){
+    if(point0->GetDefGPoint() && point1->GetDefGPoint()){
+
+  
+      MGPoint mgpoint = mpoint->GetMGPoint();
+      if(mgpoint == NULL || !mgpoint->IsDefined() ||
+         mgpoint->GetNoComponents() < 1 ) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      GPoint gp0 = point0->GetGPoint();
+      if(gp0 == NULL || !gp0->IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      GPoint gp1 = point1->GetGPoint();
+      if(gp1 == NULL || !gp1->IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      ((CcBool *)result.addr)->Set(true, mgpoint->Passes(gp0) &&  mgpoint->Passes(gp1));
+      return 0;
+
+
+    }else{
+      ((CcBool *)result.addr)->Set( false, false );
+      return 0;
+    }
+  }
+  
+  
+  return 0;
+}
+
+
+
+ValueMapping betweenMap[] =
+{
+  betweenVM
+  
+};
+
+const string betweenSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator betweenGMO( "gmo_between", betweenSpec,1 , betweenMap,
+                         betweenSelect, betweenTM);
+
+
 
 
 
@@ -1024,10 +1383,14 @@ thematicpathTC.AssociateKind(Kind::DATA());
 
 
 AddOperator(&creategenericmpointGMO);
+AddOperator(&creategenericpointGMO);
 AddOperator(&distanceGMO);
 AddOperator(&map_functionGMO);
 AddOperator(&map2fs_functionGMO);
 AddOperator(&map2network_functionGMO);
+AddOperator(&presentGMO);
+AddOperator(&betweenGMO);
+
 }
 
 GMOAlgebra::~GMOAlgebra(){}

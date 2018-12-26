@@ -15,6 +15,7 @@ MTPoint.o: MTPoint.cpp \
  /home/secondo/secondo/include/WinUnix.h \
  /home/secondo/secondo/include/SecondoException.h \
  /home/secondo/secondo/include/LRU.h \
+ /home/secondo/secondo/include/SecondoSMI.h \
  /home/secondo/secondo/include/Messages.h \
  /home/secondo/secondo/include/NList.h \
  /home/secondo/secondo/include/SecondoException.h \
@@ -23,7 +24,6 @@ MTPoint.o: MTPoint.cpp \
  /home/secondo/secondo/include/SecondoCatalog.h \
  /home/secondo/secondo/include/AlgebraManager.h \
  /home/secondo/secondo/include/AlgebraTypes.h \
- /home/secondo/secondo/include/SecondoSMI.h \
  /home/secondo/secondo/include/AlgebraInit.h \
  /home/secondo/secondo/include/AlgebraClassDef.h \
  /home/secondo/secondo/include/Operator.h \
@@ -32,6 +32,8 @@ MTPoint.o: MTPoint.cpp \
  /home/secondo/secondo/include/NameIndex.h \
  /home/secondo/secondo/include/SystemTables.h \
  /home/secondo/secondo/include/ListUtils.h \
+ /home/secondo/secondo/include/QueryProcessor.h \
+ /home/secondo/secondo/include/DotSpec.h \
  /home/secondo/secondo/include/Counter.h \
  /home/secondo/secondo/include/CharTransform.h \
  /home/secondo/secondo/include/WinUnix.h \
@@ -47,72 +49,34 @@ MTPoint.o: MTPoint.cpp \
  /home/secondo/secondo/include/DateTime.h \
  /home/secondo/secondo/include/IndexableAttribute.h \
  /home/secondo/secondo/include/StandardTypes.h \
- /home/secondo/secondo/include/BigInt.h Domain.h \
+ /home/secondo/secondo/include/BigInt.h Domain.h MTPoint.h \
  ../Temporal/TemporalAlgebra.h /home/secondo/secondo/include/NestedList.h \
  /home/secondo/secondo/include/QueryProcessor.h \
- /home/secondo/secondo/include/DotSpec.h \
- /home/secondo/secondo/include/DateTime.h \
  /home/secondo/secondo/include/Algebra.h \
  /home/secondo/secondo/include/TypeConstructor.h \
  /home/secondo/secondo/include/ConstructorTemplates.h \
- /home/secondo/secondo/Algebras/Spatial/SpatialAlgebra.h \
- /home/secondo/secondo/Algebras/Spatial/SimplePoint.h \
- /home/secondo/secondo/Algebras/Spatial/Point.h \
- /home/secondo/secondo/include/AlmostEqual.h \
- /home/secondo/secondo/Algebras/Spatial/Coord.h \
- /home/secondo/secondo/Algebras/Spatial/Geoid.h \
+ ../Spatial/SpatialAlgebra.h ../Spatial/SimplePoint.h ../Spatial/Point.h \
+ ../Spatial/Coord.h ../Spatial/Geoid.h \
  /home/secondo/secondo/include/GenericTC.h \
- /home/secondo/secondo/include/Algebra.h \
- /home/secondo/secondo/Algebras/Rectangle/RectangleAlgebra.h \
- /home/secondo/secondo/include/Messages.h \
- /home/secondo/secondo/Algebras/Spatial/Geoid.h \
+ /home/secondo/secondo/include/Algebra.h ../Rectangle/RectangleAlgebra.h \
+ /home/secondo/secondo/include/Messages.h ../Spatial/Geoid.h \
  /home/secondo/secondo/include/ListUtils.h \
- /home/secondo/secondo/Algebras/Spatial/../../Tools/Flob/DbArray.h \
- /home/secondo/secondo/Algebras/Spatial/../../Tools/Flob/MMDbArray.h \
- /home/secondo/secondo/Algebras/Spatial/../../Tools/Flob/Flob.h \
- /home/secondo/secondo/Algebras/Spatial/../../Tools/Flob/DbArray.h \
- /home/secondo/secondo/Algebras/Spatial/../Rectangle/RectangleAlgebra.h \
+ ../Spatial/../../Tools/Flob/DbArray.h \
+ ../Spatial/../Rectangle/RectangleAlgebra.h \
  /home/secondo/secondo/include/AvlTree.h \
- /home/secondo/secondo/Algebras/Spatial/PointsT.h \
- /home/secondo/secondo/Algebras/Spatial/LineT.h \
- /home/secondo/secondo/Algebras/Spatial/RegionT.h \
- /home/secondo/secondo/Algebras/Spatial/WindowEdge.h \
- /home/secondo/secondo/Algebras/Spatial/HalfSegment.h \
- /home/secondo/secondo/Algebras/Spatial/AttrType.h \
- /home/secondo/secondo/Algebras/Spatial/SimpleLineT.h \
- /home/secondo/secondo/Algebras/Spatial/LRS.h \
- /home/secondo/secondo/Algebras/Spatial/Berlin2WGS.h \
- /home/secondo/secondo/Algebras/Spatial/SpatialAlgebra.h \
- /home/secondo/secondo/Algebras/Spatial/AVLSegment.h \
- /home/secondo/secondo/Algebras/Spatial/AVLSegmentImpl.h \
- /home/secondo/secondo/Algebras/Spatial/RobustSetOps.h \
- /home/secondo/secondo/include/MMRTree.h \
- /home/secondo/secondo/Algebras/Spatial/../Relation-C++/RelationAlgebra.h \
- /home/secondo/secondo/include/Trace.h \
- /home/secondo/secondo/include/Counter.h \
- /home/secondo/secondo/Algebras/TupleIdentifier/TupleIdentifier.h \
- /home/secondo/secondo/Algebras/Spatial/RobustSetOpsImpl.h \
- /home/secondo/secondo/Algebras/Spatial/RegionCreator.h \
- /home/secondo/secondo/Algebras/Spatial/RegionCreatorImpl.h \
- /home/secondo/secondo/Tools/Flob/DbArray.h \
- /home/secondo/secondo/Algebras/Spatial/LineSplitter.h \
- /home/secondo/secondo/Algebras/Spatial/LineSplitterImpl.h \
- /home/secondo/secondo/Algebras/Spatial/PointsTImpl.h \
- /home/secondo/secondo/Tools/Flob/MMDbArray.h \
- /home/secondo/secondo/Algebras/Spatial/LineTImpl.h \
- /home/secondo/secondo/Algebras/Spatial/RegionTImpl.h \
- /home/secondo/secondo/Algebras/Spatial/SimpleLineTImpl.h \
- ../Temporal/../../Tools/Flob/DbArray.h \
- /home/secondo/secondo/include/Progress.h \
- /home/secondo/secondo/Algebras/Temporal/CellGrid.h \
- /home/secondo/secondo/include/CharTransform.h MTPoint.h UTPoint.h \
- TPoint.h ../Spatial/SpatialAlgebra.h ../Network/NetworkAlgebra.h \
+ /home/secondo/secondo/include/AlmostEqual.h ../Spatial/AVLSegment.h \
+ ../Spatial/HalfSegment.h ../Spatial/AttrType.h ../Spatial/Berlin2WGS.h \
+ ../Spatial/SpatialAlgebra.h ../Temporal/../../Tools/Flob/DbArray.h \
+ /home/secondo/secondo/include/Progress.h ../Temporal/CellGrid.h \
+ ../Temporal/../../include/CharTransform.h UTPoint.h TPoint.h \
+ ../Spatial/SpatialAlgebra.h ../Network/NetworkAlgebra.h \
  ../Network/../TupleIdentifier/TupleIdentifier.h \
  ../Network/../Relation-C++/RelationAlgebra.h \
+ /home/secondo/secondo/include/Trace.h \
+ /home/secondo/secondo/include/Counter.h \
+ ../Network/../Relation-C++/../TupleIdentifier/TupleIdentifier.h \
  ../Network/../BTree/BTreeAlgebra.h ../Network/../../Tools/Flob/DbArray.h \
  ../Network/../../Tools/Flob/Flob.h \
  ../Network/../Spatial/SpatialAlgebra.h \
- ../Network/../RTree/RTreeAlgebra.h \
- /home/secondo/secondo/Algebras/Relation-C++/RelationAlgebra.h \
- /home/secondo/secondo/Algebras/BTree/BTreeAlgebra.h \
- /home/secondo/secondo/Algebras/Temporal/TemporalAlgebra.h
+ ../Network/../RTree/RTreeAlgebra.h ../Relation-C++/RelationAlgebra.h \
+ ../BTree/BTreeAlgebra.h ../Temporal/TemporalAlgebra.h

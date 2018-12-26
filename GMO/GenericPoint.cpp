@@ -6,8 +6,10 @@
 #include "NList.h"
 #include "Symbols.h"
 #include "StandardTypes.h"
-#include "../Network/NetworkAlgebra.h"
-#include "../Spatial/SpatialAlgebra.h"
+// #include "../Network/NetworkAlgebra.h"
+// #include "../Spatial/SpatialAlgebra.h"
+#include "NetworkAlgebra.h"
+#include "SpatialAlgebra.h"
 #include <typeinfo>
 
 
@@ -39,20 +41,29 @@ GenericPoint::GenericPoint(const GenericPoint& other) :
 	if(other.IsDefined()){
     if(other.GetDefPoint() == true){
 		  point = other.GetPoint();
+      tpoint = TPoint(false);
+      gpoint =  GPoint(false);
       def_point = true;
       def_gpoint = false;
-      gpoint =  GPoint(false);
+      def_tpoint = false;
+      
 
     }else if (other.GetDefGPoint() == true ){
       gpoint = other.GetGPoint();
+      tpoint = TPoint(false);
       point =  Point(false);
       def_gpoint = true;
       def_point = false;
+      def_tpoint = false;
     }
-	}else{
-		
-		
-	}
+	}else if (other.GetDefTPoint() == true ){
+      tpoint = other.GetTPoint();
+      point =  Point(false);
+      gpoint =  GPoint(false);
+      def_gpoint = false;
+      def_point = false;
+      def_tpoint = true;
+    }
 }
 
 
@@ -82,11 +93,18 @@ GenericPoint::GenericPoint(const GPoint& ingpoint) :
 GenericPoint::GenericPoint(const TPoint& intpoint) :
   Attribute(true) 
 { 
+  cout<<"Entro a constructor tpoint"<<endl;
+  cout<<"IsDefined :"<<IsDefined()<<endl;
+  cout<<"T POINT:"<<endl;
+  intpoint.Print(cout);
   domain = FreeSpace;
   def_point = false;
   def_tpoint = true;
   def_gpoint =false;
-  tpoint = intpoint;
+  TPoint aux(intpoint);
+  tpoint = aux;
+  cout<<"T POINT:"<<endl;
+  tpoint.Print(cout);
   gpoint=GPoint(false);
   point =  Point(false);
 }
@@ -277,6 +295,8 @@ const bool GenericPoint::checkType(const ListExpr type)
 GenericPoint& GenericPoint::operator=(const GenericPoint& other)
 {
   SetDefined(other.IsDefined());
+  cout<<"Other.IsDefined inside = :"<<other.IsDefined()<<endl;
+
   if (other.IsDefined())
   {
     if(other.GetDefPoint()){
@@ -285,6 +305,7 @@ GenericPoint& GenericPoint::operator=(const GenericPoint& other)
       def_gpoint = false;
       point = other.GetPoint();
       gpoint = GPoint(false);
+      tpoint = TPoint(false);
       domain = FreeSpace;
     }else if(other.GetDefGPoint()){
       def_point=false;
@@ -295,12 +316,18 @@ GenericPoint& GenericPoint::operator=(const GenericPoint& other)
       gpoint = other.GetGPoint();
       domain = Network;
     }else if(other.GetDefTPoint()){
+      cout<<"other.GetDefTPoint()"<<endl;
+      other.GetTPoint().Print(cout);
+      cout<<endl;
       def_point=false;
       def_tpoint=false;
       def_gpoint = false;
       point = Point(false);
       tpoint = other.GetTPoint();
-      gpoint = other.GetGPoint();
+      cout<<"tpoint after assigment:"<<endl;
+      tpoint.Print(cout);
+      cout<<endl;
+      gpoint = GPoint(false);
       domain = FreeSpace;
     }
     // targetid = other.GetTargetId();
@@ -375,6 +402,8 @@ ListExpr GenericPoint::Out(ListExpr typeInfo, Word value)
     }else if( actValue->GetDefTPoint()){
 
       TPoint tpoint = actValue->GetTPoint();
+      cout<<"OUT in TPoint"<<endl;
+      tpoint.Print(cout);cout<<endl;
       return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
       TPoint::Out(nl->TheEmptyList(),SetWord( &tpoint)));
 
@@ -409,7 +438,6 @@ Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
 
     if (in_list.length() == 2)
     {
-      cout<<"Paso length ==2"<<endl; 
       NList domainList(in_list.first());
       NList spatial_structureList(in_list.second());
       
@@ -423,7 +451,6 @@ Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
       }
       else
       {
-       
         correct = false;
         // cmsg.inFunError("1.Element should be " + CcInt::BasicType() + " >= 0.");
         return SetWord(Address(0));
@@ -436,6 +463,7 @@ Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
         && (spatial_structureList.second().isReal() || spatial_structureList.second().isInt())) //Length 2 means spatial structure is given by a point using coordinates, Length 1 means spatial structure is given by a stop
         {
           Point* sS = (Point*) InPoint(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
+          cout<<"correct : "<<correct<<endl;
           if(correct){
             GenericPoint* out = new GenericPoint(*sS);
             return SetWord(out);
@@ -455,6 +483,8 @@ Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
            TPoint* sS = (TPoint*) TPoint::In(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
           if(correct){
             GenericPoint* out = new GenericPoint(*sS);
+            cout<<"Is correct IN:"<<endl;
+            out->Print(cout);
             return SetWord(out);
           }
         }

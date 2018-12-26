@@ -6,8 +6,10 @@
 #include "NList.h"
 #include "Symbols.h"
 #include "StandardTypes.h"
-#include "../Network/NetworkAlgebra.h"
-#include "../Spatial/SpatialAlgebra.h"
+// #include "../Network/NetworkAlgebra.h"
+// #include "../Spatial/SpatialAlgebra.h"
+#include "NetworkAlgebra.h"
+#include "SpatialAlgebra.h"
 #include "DateTime.h"
 #include <typeinfo>
 
@@ -79,8 +81,10 @@ GenericMPoint::GenericMPoint(const MPoint& _mpoint) :
     domain = FreeSpace;
     def_mpoint = true;
     def_mgpoint = false;
+    def_mtpoint = false;
     mpoint = new MPoint(_mpoint);
     mgpoint = new MGPoint(false);
+    mtpoint = new MTPoint(false);
 
   }else{
     SetDefined(false);
@@ -95,9 +99,10 @@ GenericMPoint::GenericMPoint(const MGPoint& _mgpoint) :
     domain = Network;
     def_mpoint = false;
     def_mgpoint = true;
-
+    def_mtpoint = false;
     mpoint = new MPoint(false);
     mgpoint = new MGPoint(_mgpoint);
+    mtpoint = new MTPoint(false);
 
   }else{
     SetDefined(false);
@@ -162,6 +167,10 @@ MTPoint GenericMPoint::GetMTPoint()const{
 MGPoint GenericMPoint::GetMGPoint()const{
   MGPoint other(*mgpoint);
   return other;
+}
+
+MGPoint* GenericMPoint::GetMGPoint2()const{
+  return mgpoint;
 }
 
 
