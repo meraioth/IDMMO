@@ -1303,22 +1303,22 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
 
   
       MGPoint mgpoint = mpoint->GetMGPoint();
-      if(mgpoint == NULL || !mgpoint->IsDefined() ||
-         mgpoint->GetNoComponents() < 1 ) {
+      if( !mgpoint.IsDefined() ||
+         mgpoint.GetNoComponents() < 1 ) {
         ((CcBool *)result.addr)->Set(false, false);
         return 0;
       }
       GPoint gp0 = point0->GetGPoint();
-      if(gp0 == NULL || !gp0->IsDefined()) {
+      if( !gp0.IsDefined()) {
         ((CcBool *)result.addr)->Set(false, false);
         return 0;
       }
       GPoint gp1 = point1->GetGPoint();
-      if(gp1 == NULL || !gp1->IsDefined()) {
+      if( !gp1.IsDefined()) {
         ((CcBool *)result.addr)->Set(false, false);
         return 0;
       }
-      ((CcBool *)result.addr)->Set(true, mgpoint->Passes(gp0) &&  mgpoint->Passes(gp1));
+      ((CcBool *)result.addr)->Set(true, mgpoint.Passes(&gp0) &&  mgpoint.Passes(&gp1));
       return 0;
 
 
