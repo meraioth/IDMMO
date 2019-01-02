@@ -22,6 +22,9 @@
 #include "AlgebraManager.h"   // e.g., check for certain kind
 //#include "../Network/NetworkAlgebra.h"
 #include "NetworkAlgebra.h"
+#include "MapMatchingMHT.h"
+#include "../MapMatching/NetworkAdapter.h"
+#include "MapMatchingMHTMGPointCreator.h"
 #include <typeinfo>
 #include <fstream>
 #include <vector>
@@ -37,6 +40,8 @@ using namespace std;
 using namespace mappings;
 using namespace gmo;
 using namespace network;
+using namespace temporalalgebra;
+using namespace mapmatch;
 
 extern NestedList* nl;
 extern QueryProcessor* qp;
@@ -109,262 +114,291 @@ MTPointProperty()
         nl->StringAtom("(((i1 i2 TRUE FALSE) (\"PF13\" \"PF14\")) ...)"))));
 };
 
+
+
+
+// MGPoint* MPoint2MGPoint(GenericMPoint* point, network::Network * pNetwork){
+
+//     MGPoint* res = new MGPoint(true);
+//     res->Clear();
+    
+//     MPoint *pMPoint = new MPoint(point->GetMPoint());
+//     cout<<"Print mpoint inside MPoint2MGPoint"<<endl;
+//     pMPoint->Print(cout);
+//     cout<<endl;
+//     if (pMPoint == 0 || !pMPoint->IsDefined() || pMPoint->IsEmpty())
+//     {
+//       res->SetDefined(false);
+//       return 0;
+//     }
+//     if (pMPoint->GetNoComponents() == 0)
+//     {
+//       res->SetDefined(false);
+//       return 0;
+//     }
+//     /*
+//     Use Startunit to initialize values
+
+//     */
+//     int iNetworkId = pNetwork->GetId();
+//     UPoint pUPoint;
+//     int i = 0;
+//     pMPoint->Get(i,pUPoint);
+//     RouteInterval *ri = pNetwork->FindInterval(pUPoint.p0, pUPoint.p1);
+//     if (ri == 0 || ri->GetRouteId() == numeric_limits<int>::max())
+//     {
+//       res->SetDefined(false);
+//       return 0;
+//     }
+//     res->SetDefined(true);
+//     res->StartBulkLoad();
+//     SimpleLine pActRouteCurve = pNetwork->GetRouteCurve(ri->GetRouteId());
+//     bool bDual = pNetwork->GetDual(ri->GetRouteId());
+//     bool bMovingUp = true;
+//     if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
+//     Side side = None;
+//     if (bDual && bMovingUp) side = Up;
+//     else
+//       if (bDual && !bMovingUp) side = Down;
+//       else side = None;
+//     UGPoint aktUGPoint = UGPoint(Interval<Instant> (
+//                                  pUPoint.timeInterval.start,
+//                                  pUPoint.timeInterval.end,
+//                                  pUPoint.timeInterval.lc,
+//                                  pUPoint.timeInterval.rc),
+//                                  iNetworkId,
+//                                  ri->GetRouteId(),
+//                                  side,
+//                                  ri->GetStartPos(),
+//                                  ri->GetEndPos());
+//     RITree *riTree = 0;
+//     if (ri->GetStartPos() < ri->GetEndPos())
+//       riTree = new RITree(ri->GetRouteId(), ri->GetStartPos(), ri->GetEndPos());
+//     else
+//       riTree = new RITree(ri->GetRouteId(), ri->GetEndPos(), ri->GetStartPos());
+//     delete ri;
+//     ri = 0;
+//     /*
+//     Continue with translation of all other units.
+
+//     */
+//     while (++i < pMPoint->GetNoComponents())
+//     {
+//       pMPoint->Get(i,pUPoint);
+//       double dNewEndPos;
+//       if (pActRouteCurve.AtPoint(pUPoint.p1, pActRouteCurve.GetStartSmaller(),
+//                                  pNetwork->GetScalefactor()*0.01,dNewEndPos))
+//       {
+//         /*
+//         End Found on same route like last ~ugpoint~
+
+//         */
+//         if (((bMovingUp && aktUGPoint.GetUnitEndPos() <= dNewEndPos) ||
+//               (!bMovingUp && aktUGPoint.GetUnitEndPos() >= dNewEndPos)) &&
+//             (AlmostEqual(aktUGPoint.Speed(),
+//               ((fabs(aktUGPoint.GetUnitEndPos() - dNewEndPos))/
+//                ((pUPoint.timeInterval.end -
+//               pUPoint.timeInterval.start).ToDouble()/0.00001157)))))
+//         {
+//           /*
+//           0.00001157 =  miliseconds to seconds. Compare meter per second.
+
+//           Unit moves same direction and speed like previous units.
+//           Extend akt ~ugpoint~ to include unit values.
+
+//           */
+//           aktUGPoint.SetUnitEndPos(dNewEndPos);
+//           aktUGPoint.SetUnitEndTime(pUPoint.timeInterval.end);
+//         }
+//         else
+//         {
+//           /*
+//           Speed changed save akt ~ugpoint~ and start new ~ugpoint~
+//           for actual ~upoint~ values
+
+//           */
+//           res->Add(aktUGPoint);
+//           riTree->InsertUnit(aktUGPoint.GetUnitRid(),
+//                             aktUGPoint.GetUnitStartPos(),
+//                             aktUGPoint.GetUnitEndPos());
+//           aktUGPoint.SetUnitStartTime(pUPoint.timeInterval.start);
+//           aktUGPoint.SetUnitEndTime(pUPoint.timeInterval.end);
+//           aktUGPoint.SetUnitStartPos(aktUGPoint.GetUnitEndPos());
+//           aktUGPoint.SetUnitEndPos(dNewEndPos);
+//           if (aktUGPoint.GetUnitStartPos() > aktUGPoint.GetUnitEndPos())
+//             bMovingUp = false;
+//           else bMovingUp = true;
+//           if (bDual && bMovingUp) side = Up;
+//           else
+//             if(bDual && !bMovingUp) side = Down;
+//             else side = None;
+//           aktUGPoint.SetUnitSide(side);
+//         }
+//       }
+//       else
+//       {
+//         /*
+//         Route must have been changed. Save akt ~ugpoint~ and compute new ~ugpoint~
+//         for actual ~upoint~ values
+
+//         */
+//         res->Add(aktUGPoint);
+//         riTree->InsertUnit(aktUGPoint.GetUnitRid(),
+//                            aktUGPoint.GetUnitStartPos(),
+//                            aktUGPoint.GetUnitEndPos());
+//         //TODO:Remove simple FindInterval against adjacent section version
+//         ri = pNetwork->FindInterval(pUPoint.p0, pUPoint.p1);
+//         if (ri == 0 || ri->GetRouteId() == numeric_limits<int>::max())
+//         {
+//           /*
+//           MPoint lost Network!
+
+//           */
+//           Instant tstart = pUPoint.timeInterval.start;
+//           GPoint start = aktUGPoint.p1;
+//           while (ri == 0 && ++i < pMPoint->GetNoComponents())
+//           {
+//             /*
+//             Find first unit of Mpoint back on Network.
+
+//             */
+//             pMPoint->Get(i,pUPoint);
+//             ri = pNetwork->FindInterval(pUPoint.p0, pUPoint.p1);
+
+//             if (ri != 0)
+//             {
+//               /*
+//               Calculate shortest path between last known network position and
+//               new network position. Fill in ugpoint units for the shortest path
+//               route intervals. For the time interval between network lost and
+//               network found again.
+
+//               */
+//               Instant tend = pUPoint.timeInterval.start;
+//               Side s = None;
+//               if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
+//               else bMovingUp = true;
+//               if (bDual && bMovingUp) s = Up;
+//               else
+//                 if (bDual && !bMovingUp) s = Down;
+//                 else s = None;
+//               pActRouteCurve = pNetwork->GetRouteCurve(ri->GetRouteId());
+//               bDual = pNetwork->GetDual(ri->GetRouteId());
+//               GPoint end = GPoint(true, iNetworkId, ri->GetRouteId(),
+//                                   ri->GetStartPos(), s);
+//               GLine *gl = new GLine(0);
+//               if (!start.ShortestPathAStar(&end,gl))
+//               {
+//                 delete ri;
+//                 ri = 0;
+//               }
+//               else
+//               {
+//                 for (int k = 0; k < gl->NoOfComponents(); k++)
+//                 {
+//                   RouteInterval gri;
+//                   gl->Get(k,gri);
+//                   Instant tpos =(tend - tstart) *
+//                                   (fabs(gri.GetEndPos()-gri.GetStartPos())/
+//                                     gl->GetLength()) +
+//                                 tstart;
+//                   if (gri.GetRouteId() == end.GetRouteId() &&
+//                       gri.GetEndPos() == end.GetPosition()) tpos = tend;
+//                   Side s = None;
+//                   if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
+//                   else bMovingUp = true;
+//                   if (bDual && gri.GetStartPos() <= gri.GetEndPos()) s = Up;
+//                   else
+//                     if (bDual && gri.GetStartPos() > gri.GetEndPos()) s = Down;
+//                     else s = None;
+//                   res->Add(UGPoint(Interval<Instant> (tstart, tpos, true, false),
+//                                   iNetworkId,
+//                                   gri.GetRouteId(),
+//                                   s,
+//                                   gri.GetStartPos(),
+//                                   gri.GetEndPos()));
+//                   riTree->InsertUnit(gri.GetRouteId(),
+//                                     gri.GetStartPos(),
+//                                     gri.GetEndPos());
+//                   tstart = tpos;
+//                 }
+//               }
+//               gl->DeleteIfAllowed();
+//             }
+//           }
+//           if (ri == 0)
+//           {
+//             res->EndBulkLoad(true);
+//             riTree->TreeToDbArray(&(res->m_trajectory));
+//             res->SetTrajectoryDefined(true);
+//             res->m_trajectory.TrimToSize();
+//             res->SetBoundingBox(pMPoint->BoundingBox());
+//             riTree->RemoveTree();
+//             return 0;
+//           }
+//         }
+//         aktUGPoint.SetUnitStartTime(pUPoint.timeInterval.start);
+//         aktUGPoint.SetUnitEndTime(pUPoint.timeInterval.end);
+//         pActRouteCurve = pNetwork->GetRouteCurve(ri->GetRouteId());
+//         bDual = pNetwork->GetDual(ri->GetRouteId());
+//         aktUGPoint.SetUnitRid(ri->GetRouteId());
+//         aktUGPoint.SetUnitStartPos(ri->GetStartPos());
+//         aktUGPoint.SetUnitEndPos(ri->GetEndPos());
+//         if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
+//         else bMovingUp = true;
+//         if (bDual && bMovingUp) side = Up;
+//         else
+//           if (bDual && !bMovingUp) side = Down;
+//           else side = None;
+//         aktUGPoint.SetUnitSide(side);
+//         delete ri;
+//         ri = 0;
+//       }
+//     }
+//     /*
+//     Finish mgpoint computation
+
+//     */
+//     res->Add(aktUGPoint);
+//     riTree->InsertUnit(aktUGPoint.GetUnitRid(), aktUGPoint.GetUnitStartPos(),
+//                        aktUGPoint.GetUnitEndPos());
+//     res->EndBulkLoad(true);
+//     riTree->TreeToDbArray(&(res->m_trajectory));
+//     res->SetTrajectoryDefined(true);
+//     res->m_trajectory.TrimToSize();
+//     res->SetBoundingBox(pMPoint->BoundingBox());
+//     /*
+//     Clean Memory.
+
+//     */
+//     riTree->RemoveTree();
+//     return res;
+// }
+
 MGPoint* MPoint2MGPoint(GenericMPoint* point, network::Network * pNetwork){
 
     MGPoint* res = new MGPoint(true);
     res->Clear();
     
-    MPoint *pMPoint = new MPoint(point->GetMPoint());
-    if (pMPoint == 0 || !pMPoint->IsDefined() || pMPoint->IsEmpty())
+    temporalalgebra::MPoint *pMPoint = new temporalalgebra::MPoint(point->GetMPoint());
+    CcReal *pNetworkScale = new CcReal(1.0);
+
+    // Do Map Matching
+
+    NetworkAdapter Network(pNetwork, pNetworkScale->GetValue());
+    MapMatchingMHT MapMatching(&Network, pMPoint);
+
+    MGPointCreator Creator(&Network, res);
+
+    if (!MapMatching.DoMatch(&Creator))
     {
-      res->SetDefined(false);
-      return 0;
+        // Error
     }
-    if (pMPoint->GetNoComponents() == 0)
-    {
-      res->SetDefined(false);
-      return 0;
-    }
-    /*
-    Use Startunit to initialize values
-
-    */
-    int iNetworkId = pNetwork->GetId();
-    UPoint pUPoint;
-    int i = 0;
-    pMPoint->Get(i,pUPoint);
-    RouteInterval *ri = pNetwork->FindInterval(pUPoint.p0, pUPoint.p1);
-    if (ri == 0 || ri->GetRouteId() == numeric_limits<int>::max())
-    {
-      res->SetDefined(false);
-      return 0;
-    }
-    res->SetDefined(true);
-    res->StartBulkLoad();
-    SimpleLine pActRouteCurve = pNetwork->GetRouteCurve(ri->GetRouteId());
-    bool bDual = pNetwork->GetDual(ri->GetRouteId());
-    bool bMovingUp = true;
-    if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
-    Side side = None;
-    if (bDual && bMovingUp) side = Up;
-    else
-      if (bDual && !bMovingUp) side = Down;
-      else side = None;
-    UGPoint aktUGPoint = UGPoint(Interval<Instant> (
-                                 pUPoint.timeInterval.start,
-                                 pUPoint.timeInterval.end,
-                                 pUPoint.timeInterval.lc,
-                                 pUPoint.timeInterval.rc),
-                                 iNetworkId,
-                                 ri->GetRouteId(),
-                                 side,
-                                 ri->GetStartPos(),
-                                 ri->GetEndPos());
-    RITree *riTree = 0;
-    if (ri->GetStartPos() < ri->GetEndPos())
-      riTree = new RITree(ri->GetRouteId(), ri->GetStartPos(), ri->GetEndPos());
-    else
-      riTree = new RITree(ri->GetRouteId(), ri->GetEndPos(), ri->GetStartPos());
-    delete ri;
-    ri = 0;
-    /*
-    Continue with translation of all other units.
-
-    */
-    while (++i < pMPoint->GetNoComponents())
-    {
-      pMPoint->Get(i,pUPoint);
-      double dNewEndPos;
-      if (pActRouteCurve.AtPoint(pUPoint.p1, pActRouteCurve.GetStartSmaller(),
-                                 pNetwork->GetScalefactor()*0.01,dNewEndPos))
-      {
-        /*
-        End Found on same route like last ~ugpoint~
-
-        */
-        if (((bMovingUp && aktUGPoint.GetUnitEndPos() <= dNewEndPos) ||
-              (!bMovingUp && aktUGPoint.GetUnitEndPos() >= dNewEndPos)) &&
-            (AlmostEqual(aktUGPoint.Speed(),
-              ((fabs(aktUGPoint.GetUnitEndPos() - dNewEndPos))/
-               ((pUPoint.timeInterval.end -
-              pUPoint.timeInterval.start).ToDouble()/0.00001157)))))
-        {
-          /*
-          0.00001157 =  miliseconds to seconds. Compare meter per second.
-
-          Unit moves same direction and speed like previous units.
-          Extend akt ~ugpoint~ to include unit values.
-
-          */
-          aktUGPoint.SetUnitEndPos(dNewEndPos);
-          aktUGPoint.SetUnitEndTime(pUPoint.timeInterval.end);
-        }
-        else
-        {
-          /*
-          Speed changed save akt ~ugpoint~ and start new ~ugpoint~
-          for actual ~upoint~ values
-
-          */
-          res->Add(aktUGPoint);
-          riTree->InsertUnit(aktUGPoint.GetUnitRid(),
-                            aktUGPoint.GetUnitStartPos(),
-                            aktUGPoint.GetUnitEndPos());
-          aktUGPoint.SetUnitStartTime(pUPoint.timeInterval.start);
-          aktUGPoint.SetUnitEndTime(pUPoint.timeInterval.end);
-          aktUGPoint.SetUnitStartPos(aktUGPoint.GetUnitEndPos());
-          aktUGPoint.SetUnitEndPos(dNewEndPos);
-          if (aktUGPoint.GetUnitStartPos() > aktUGPoint.GetUnitEndPos())
-            bMovingUp = false;
-          else bMovingUp = true;
-          if (bDual && bMovingUp) side = Up;
-          else
-            if(bDual && !bMovingUp) side = Down;
-            else side = None;
-          aktUGPoint.SetUnitSide(side);
-        }
-      }
-      else
-      {
-        /*
-        Route must have been changed. Save akt ~ugpoint~ and compute new ~ugpoint~
-        for actual ~upoint~ values
-
-        */
-        res->Add(aktUGPoint);
-        riTree->InsertUnit(aktUGPoint.GetUnitRid(),
-                           aktUGPoint.GetUnitStartPos(),
-                           aktUGPoint.GetUnitEndPos());
-        //TODO:Remove simple FindInterval against adjacent section version
-        ri = pNetwork->FindInterval(pUPoint.p0, pUPoint.p1);
-        if (ri == 0 || ri->GetRouteId() == numeric_limits<int>::max())
-        {
-          /*
-          MPoint lost Network!
-
-          */
-          Instant tstart = pUPoint.timeInterval.start;
-          GPoint start = aktUGPoint.p1;
-          while (ri == 0 && ++i < pMPoint->GetNoComponents())
-          {
-            /*
-            Find first unit of Mpoint back on Network.
-
-            */
-            pMPoint->Get(i,pUPoint);
-            ri = pNetwork->FindInterval(pUPoint.p0, pUPoint.p1);
-
-            if (ri != 0)
-            {
-              /*
-              Calculate shortest path between last known network position and
-              new network position. Fill in ugpoint units for the shortest path
-              route intervals. For the time interval between network lost and
-              network found again.
-
-              */
-              Instant tend = pUPoint.timeInterval.start;
-              Side s = None;
-              if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
-              else bMovingUp = true;
-              if (bDual && bMovingUp) s = Up;
-              else
-                if (bDual && !bMovingUp) s = Down;
-                else s = None;
-              pActRouteCurve = pNetwork->GetRouteCurve(ri->GetRouteId());
-              bDual = pNetwork->GetDual(ri->GetRouteId());
-              GPoint end = GPoint(true, iNetworkId, ri->GetRouteId(),
-                                  ri->GetStartPos(), s);
-              GLine *gl = new GLine(0);
-              if (!start.ShortestPathAStar(&end,gl))
-              {
-                delete ri;
-                ri = 0;
-              }
-              else
-              {
-                for (int k = 0; k < gl->NoOfComponents(); k++)
-                {
-                  RouteInterval gri;
-                  gl->Get(k,gri);
-                  Instant tpos =(tend - tstart) *
-                                  (fabs(gri.GetEndPos()-gri.GetStartPos())/
-                                    gl->GetLength()) +
-                                tstart;
-                  if (gri.GetRouteId() == end.GetRouteId() &&
-                      gri.GetEndPos() == end.GetPosition()) tpos = tend;
-                  Side s = None;
-                  if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
-                  else bMovingUp = true;
-                  if (bDual && gri.GetStartPos() <= gri.GetEndPos()) s = Up;
-                  else
-                    if (bDual && gri.GetStartPos() > gri.GetEndPos()) s = Down;
-                    else s = None;
-                  res->Add(UGPoint(Interval<Instant> (tstart, tpos, true, false),
-                                  iNetworkId,
-                                  gri.GetRouteId(),
-                                  s,
-                                  gri.GetStartPos(),
-                                  gri.GetEndPos()));
-                  riTree->InsertUnit(gri.GetRouteId(),
-                                    gri.GetStartPos(),
-                                    gri.GetEndPos());
-                  tstart = tpos;
-                }
-              }
-              gl->DeleteIfAllowed();
-            }
-          }
-          if (ri == 0)
-          {
-            res->EndBulkLoad(true);
-            riTree->TreeToDbArray(&(res->m_trajectory));
-            res->SetTrajectoryDefined(true);
-            res->m_trajectory.TrimToSize();
-            res->SetBoundingBox(pMPoint->BoundingBox());
-            riTree->RemoveTree();
-            return 0;
-          }
-        }
-        aktUGPoint.SetUnitStartTime(pUPoint.timeInterval.start);
-        aktUGPoint.SetUnitEndTime(pUPoint.timeInterval.end);
-        pActRouteCurve = pNetwork->GetRouteCurve(ri->GetRouteId());
-        bDual = pNetwork->GetDual(ri->GetRouteId());
-        aktUGPoint.SetUnitRid(ri->GetRouteId());
-        aktUGPoint.SetUnitStartPos(ri->GetStartPos());
-        aktUGPoint.SetUnitEndPos(ri->GetEndPos());
-        if (ri->GetStartPos() > ri->GetEndPos()) bMovingUp = false;
-        else bMovingUp = true;
-        if (bDual && bMovingUp) side = Up;
-        else
-          if (bDual && !bMovingUp) side = Down;
-          else side = None;
-        aktUGPoint.SetUnitSide(side);
-        delete ri;
-        ri = 0;
-      }
-    }
-    /*
-    Finish mgpoint computation
-
-    */
-    res->Add(aktUGPoint);
-    riTree->InsertUnit(aktUGPoint.GetUnitRid(), aktUGPoint.GetUnitStartPos(),
-                       aktUGPoint.GetUnitEndPos());
-    res->EndBulkLoad(true);
-    riTree->TreeToDbArray(&(res->m_trajectory));
-    res->SetTrajectoryDefined(true);
-    res->m_trajectory.TrimToSize();
-    res->SetBoundingBox(pMPoint->BoundingBox());
-    /*
-    Clean Memory.
-
-    */
-    riTree->RemoveTree();
     return res;
+    
 }
 
-MPoint MTPoint2MPoint(GenericMPoint* point,string map_function_str){
+temporalalgebra::MPoint MTPoint2MPoint(GenericMPoint* point,string map_function_str){
   CSVReader reader(map_function_str,",");
      
   // Get the data from CSV File
@@ -388,7 +422,7 @@ MPoint MTPoint2MPoint(GenericMPoint* point,string map_function_str){
     map_longitude[dataList[i][0]]= std::strtod(dataList[i][4].c_str(),&aux_2);
   }
 
-  MPoint newpoint(point->GetMTPoint().GetNoComponents());
+  temporalalgebra::MPoint newpoint(point->GetMTPoint().GetNoComponents());
 
   if(point->GetDefMTPoint()){
 
@@ -684,7 +718,7 @@ const string maps_creategenericmpoint[3][2] =
 
   {MTPoint::BasicType(), GenericMPoint::BasicType()},
   {MGPoint::BasicType(), GenericMPoint::BasicType()},
-  {MPoint::BasicType(),GenericMPoint::BasicType()}
+  {temporalalgebra::MPoint::BasicType(),GenericMPoint::BasicType()}
   
 };
 
@@ -709,7 +743,7 @@ int creategenericmpoint_mpointVM( Word* args, Word& result, int message, Word& l
   result = qp->ResultStorage(s);
   GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
 
-  MPoint* point = (MPoint*) args[0].addr;
+  temporalalgebra::MPoint* point = (temporalalgebra::MPoint*) args[0].addr;
   //res->Clear();
   if ( ! point->IsDefined()){
     res->SetDefined(false);
@@ -928,7 +962,7 @@ int map_functionVM( Word* args, Word& result, int message, Word& local,
       return 0;
     }else{
 
-      MPoint newpoint = MTPoint2MPoint(point,map_function_str);
+      temporalalgebra::MPoint newpoint = MTPoint2MPoint(point,map_function_str);
       
       res->SetDefined(true);
 
@@ -1023,7 +1057,7 @@ int map2fs_functionVM( Word* args, Word& result, int message, Word& local,
 
     MGPoint mgpoint(false);
   
-    MPoint* temp = new MPoint(true);
+    temporalalgebra::MPoint* temp = new temporalalgebra::MPoint(true);
 
     point->GetMGPoint2()->Mgpoint2mpoint(temp);
 
@@ -1113,7 +1147,8 @@ int map2network_functionVM( Word* args, Word& result, int message, Word& local,
     //MGPoint* res = static_cast<MGPoint*>(result.addr);
     
     MGPoint* res = MPoint2MGPoint(point,pNetwork);
-    GenericMPoint * final = new GenericMPoint(res);
+    res->Print(cout);
+    GenericMPoint * final = new GenericMPoint(*res);
     *res_final = *final;
     return 0;
 

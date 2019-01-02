@@ -23,7 +23,7 @@ Tolerance: 0.01%
 Operator : map2network
 Number   : 4
 Signature: genericmpoint x network  -> genericmpoint
-Example  : query map2network("Network",[const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))], network);
+Example  : query map2network([const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(-73.00 -65.00 -73.00 -65.00))))], network);
 Result   : [const genericmpoint value ("Network" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(1 1 65.00 80))))]
 Tolerance: 0.01%
 
@@ -57,3 +57,11 @@ Signature:  genericmpoint x generipoint x generipoint -> bool
 Example  : query gmo_between([const genericmpoint value ("FreeSpace" ((("2007-01-01-10:10:00.000" "2007-01-01-10:10:01.000" TRUE FALSE)(10.0 10.0 10.0 20.0))))],[const genericpoint value ("FreeSpace" (5.0 10.0))],[const genericpoint value ("FreeSpace" (15.0 50.0))])
 Result   : TRUE
 Tolerance: 0.01%
+
+Operator : gmo_between
+Number   : 8
+Signature:  genericmpoint x generipoint x generipoint -> bool
+Example  : query gmo_between([const genericmpoint value ("Network" ( (("2007-01-01" "2007-01-02" TRUE FALSE)(1 1 1 0.2 2.4))(("2007-01-02" "2007-01-03" TRUE TRUE )(1 2 1 0.0 1.0))) )],[const genericpoint value ("Network" (1 1 10.0 1))],[const genericpoint value ("Network" (1 1 30.0 1))])
+Result   : TRUE
+Tolerance: 0.01%
+
