@@ -93,7 +93,8 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  ../MapMatching/MapMatchingUtil.h \
  ../MapMatching/MapMatchingNetworkInterface.h \
  ../MapMatching/../Spatial/Point.h ../MapMatching/MapMatchingData.h \
- ../Spatial/Point.h ../MapMatching/NetworkAdapter.h \
+ ../Spatial/Point.h ../Network/NetworkManager.h \
+ ../MapMatching/NetworkAdapter.h \
  ../MapMatching/MapMatchingMHTMGPointCreator.h \
  ../MapMatching/MapMatchingMHT.h ../MapMatching/MHTRouteCandidate.h \
  ../MapMatching/NetworkSection.h ../Spatial/Point.h \
