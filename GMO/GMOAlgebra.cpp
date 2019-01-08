@@ -20,12 +20,12 @@
 #include "Thematic.h"
 #include "QueryProcessor.h"   // needed for implementing value mappings
 #include "AlgebraManager.h"   // e.g., check for certain kind
-//#include "../Network/NetworkAlgebra.h"
-#include "NetworkAlgebra.h"
-#include "MapMatchingMHT.h"
-#include "NetworkManager.h"
+#include "../Network/NetworkAlgebra.h"
+//#include "NetworkAlgebra.h"
+#include "../MapMatching/MapMatchingMHT.h"
+#include "../Network/NetworkManager.h"
 #include "../MapMatching/NetworkAdapter.h"
-#include "MapMatchingMHTMGPointCreator.h"
+#include "../MapMatching/MapMatchingMHTMGPointCreator.h"
 #include <typeinfo>
 #include <fstream>
 #include <vector>
@@ -42,7 +42,7 @@ using namespace mappings;
 using namespace gmo;
 using namespace network;
 using namespace temporalalgebra;
-using namespace mapmatch;
+//using namespace mapmatch;
 
 extern NestedList* nl;
 extern QueryProcessor* qp;
@@ -129,10 +129,10 @@ MGPoint* MPoint2MGPoint(GenericMPoint* point, network::Network * pNetwork){
 
     // Do Map Matching
 
-    NetworkAdapter Network(pNetwork, pNetworkScale->GetValue());
-    MapMatchingMHT MapMatching(&Network, pMPoint);
+    mapmatch::NetworkAdapter Network(pNetwork, pNetworkScale->GetValue());
+    mapmatch::MapMatchingMHT MapMatching(&Network, pMPoint);
 
-    MGPointCreator Creator(&Network, res);
+    mapmatch::MGPointCreator Creator(&Network, res);
 
     if (!MapMatching.DoMatch(&Creator))
     {
@@ -1066,8 +1066,8 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
   if(mpoint->GetDefMPoint()){
 
     if(point0->GetDefPoint() && point1->GetDefPoint()){
-
-      Rectangle<2> accubbox(true,point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY());
+      double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; 
+      Rectangle<2> accubbox(true,bbox);
       Line line(0) ;
       mpoint->GetMPoint().Trajectory(line);
       if( accubbox.IsDefined() && line.IsDefined() )
@@ -1103,7 +1103,9 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
       
 
         GLine* pGLine = new GLine(0);
+        GLine * traj = new GLine(0);
 
+        mgpoint.Trajectory(traj);
         // DbArray<RouteInterval>* GetRouteIntervals()
         
         network::Network * pNetwork = NetworkManager::GetNetwork(gp0.GetNetworkId());
@@ -1112,6 +1114,14 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
         pGLine->SetSorted ( false );
         pGLine->SetDefined ( gp0.ShortestPath ( &gp1, pGLine, pNetwork,
                                                          0 ) );
+        RouteInterval ris; 
+
+
+
+        for(int i = 0 ; i< pGLine->Size() ; i++){
+          pGLine->Get(i,ris);
+
+        }
         NetworkManager::CloseNetwork(pNetwork);
 
 
@@ -1151,6 +1161,290 @@ const string betweenSpec =
 Operator betweenGMO( "gmo_between", betweenSpec,1 , betweenMap,
                          betweenSelect, betweenTM);
 
+
+
+
+/*
+1.1.1 ~gmo_duration~
+
+Returns periods where genericmpoint was alive
+*/
+
+
+const string maps_duration[1][4] =
+{
+  {GenericMPoint::BasicType(),GenericPoint::BasicType(),GenericPoint::BasicType(),CcBool::BasicType()},
+  
+};
+
+ListExpr durationTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,4>(maps_duration, args);
+
+}
+
+int durationSelect(ListExpr args)
+{ 
+
+   return SimpleSelect<1,4>(maps_duration, args);
+}
+
+int durationVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  //CcBool* res = static_cast<CcBool*> (result.addr);
+
+  GenericMPoint* mpoint = (GenericMPoint*) args[0].addr;
+
+  GenericPoint* point0 = (GenericPoint*) args[1].addr;
+  GenericPoint* point1 = (GenericPoint*) args[2].addr;
+
+  if ( ! mpoint->IsDefined()|| ! point0->IsDefined() || ! point1->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  if(mpoint->GetDefMPoint()){
+
+    if(point0->GetDefPoint() && point1->GetDefPoint()){
+      double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; 
+      Rectangle<2> accubbox(true,bbox);
+      Line line(0) ;
+      mpoint->GetMPoint().Trajectory(line);
+      if( accubbox.IsDefined() && line.IsDefined() )
+      {
+        Region reg( accubbox );
+        ((CcBool *)result.addr)->Set( true, line.Intersects(reg));
+      }
+    }else{
+      ((CcBool *)result.addr)->Set( false, false );
+      return 0;
+    }
+
+  }else if(mpoint->GetDefMGPoint()){
+    if(point0->GetDefGPoint() && point1->GetDefGPoint()){
+
+  
+      MGPoint mgpoint = mpoint->GetMGPoint();
+      if( !mgpoint.IsDefined() ||
+         mgpoint.GetNoComponents() < 1 ) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      GPoint gp0 = point0->GetGPoint();
+      if( !gp0.IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      GPoint gp1 = point1->GetGPoint();
+      if( !gp1.IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      
+
+        GLine* pGLine = new GLine(0);
+        GLine * traj = new GLine(0);
+
+        mgpoint.Trajectory(traj);
+        // DbArray<RouteInterval>* GetRouteIntervals()
+        
+        network::Network * pNetwork = NetworkManager::GetNetwork(gp0.GetNetworkId());
+
+
+        pGLine->SetSorted ( false );
+        pGLine->SetDefined ( gp0.ShortestPath ( &gp1, pGLine, pNetwork,
+                                                         0 ) );
+        RouteInterval ris; 
+
+
+
+        for(int i = 0 ; i< pGLine->Size() ; i++){
+          pGLine->Get(i,ris);
+
+        }
+        NetworkManager::CloseNetwork(pNetwork);
+
+
+
+        pGLine->Print(cout);
+        cout<<endl;
+        cout<<"NetworkID"<<pNetwork->GetId()<<endl;
+
+
+
+      ((CcBool *)result.addr)->Set(true, mgpoint.Passes(&gp0) &&  mgpoint.Passes(&gp1));
+      return 0;
+
+
+    }else{
+      ((CcBool *)result.addr)->Set( false, false );
+      return 0;
+    }
+  }
+  
+  
+  return 0;
+}
+
+
+
+ValueMapping durationMap[] =
+{
+  durationVM
+  
+};
+
+const string durationSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator durationGMO( "gmo_duration", durationSpec,1 , durationMap,
+                         durationSelect, durationTM);
+
+
+
+/*
+1.1.1 ~gmo_subsequence~
+
+Returns periods where genericmpoint was alive
+*/
+
+
+const string maps_subsequence[1][4] =
+{
+  {GenericMPoint::BasicType(),GenericPoint::BasicType(),GenericPoint::BasicType(),CcBool::BasicType()},
+  
+};
+
+ListExpr subsequenceTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,4>(maps_subsequence, args);
+
+}
+
+int subsequenceSelect(ListExpr args)
+{ 
+
+   return SimpleSelect<1,4>(maps_subsequence, args);
+}
+
+int subsequenceVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  //CcBool* res = static_cast<CcBool*> (result.addr);
+
+  GenericMPoint* mpoint = (GenericMPoint*) args[0].addr;
+
+  GenericPoint* point0 = (GenericPoint*) args[1].addr;
+  GenericPoint* point1 = (GenericPoint*) args[2].addr;
+
+  if ( ! mpoint->IsDefined()|| ! point0->IsDefined() || ! point1->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  if(mpoint->GetDefMPoint()){
+
+    if(point0->GetDefPoint() && point1->GetDefPoint()){
+      double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; 
+      Rectangle<2> accubbox(true,bbox);
+      Line line(0) ;
+      mpoint->GetMPoint().Trajectory(line);
+      if( accubbox.IsDefined() && line.IsDefined() )
+      {
+        Region reg( accubbox );
+        ((CcBool *)result.addr)->Set( true, line.Intersects(reg));
+      }
+    }else{
+      ((CcBool *)result.addr)->Set( false, false );
+      return 0;
+    }
+
+  }else if(mpoint->GetDefMGPoint()){
+    if(point0->GetDefGPoint() && point1->GetDefGPoint()){
+
+  
+      MGPoint mgpoint = mpoint->GetMGPoint();
+      if( !mgpoint.IsDefined() ||
+         mgpoint.GetNoComponents() < 1 ) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      GPoint gp0 = point0->GetGPoint();
+      if( !gp0.IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      GPoint gp1 = point1->GetGPoint();
+      if( !gp1.IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      
+
+        GLine* pGLine = new GLine(0);
+        GLine * traj = new GLine(0);
+
+        mgpoint.Trajectory(traj);
+        // DbArray<RouteInterval>* GetRouteIntervals()
+        
+        network::Network * pNetwork = NetworkManager::GetNetwork(gp0.GetNetworkId());
+
+
+        pGLine->SetSorted ( false );
+        pGLine->SetDefined ( gp0.ShortestPath ( &gp1, pGLine, pNetwork,
+                                                         0 ) );
+        RouteInterval ris; 
+
+
+
+        for(int i = 0 ; i< pGLine->Size() ; i++){
+          pGLine->Get(i,ris);
+
+        }
+        NetworkManager::CloseNetwork(pNetwork);
+
+
+
+        pGLine->Print(cout);
+        cout<<endl;
+        cout<<"NetworkID"<<pNetwork->GetId()<<endl;
+
+
+
+      ((CcBool *)result.addr)->Set(true, mgpoint.Passes(&gp0) &&  mgpoint.Passes(&gp1));
+      return 0;
+
+
+    }else{
+      ((CcBool *)result.addr)->Set( false, false );
+      return 0;
+    }
+  }
+  
+  
+  return 0;
+}
+
+
+
+ValueMapping subsequenceMap[] =
+{
+  subsequenceVM
+  
+};
+
+const string subsequenceSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator subsequenceGMO( "gmo_subsequence", subsequenceSpec,1 , subsequenceMap,
+                         subsequenceSelect, subsequenceTM);
 
 
 
@@ -1194,6 +1488,9 @@ AddOperator(&map2fs_functionGMO);
 AddOperator(&map2network_functionGMO);
 AddOperator(&presentGMO);
 AddOperator(&betweenGMO);
+AddOperator(&durationGMO);
+AddOperator(&subsequenceGMO);
+
 
 }
 
