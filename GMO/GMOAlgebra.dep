@@ -89,12 +89,11 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  ../TemporalNet/TemporalNetAlgebra.h ../TemporalNet/../Spatial/Geoid.h \
  ../TemporalNet/../Network/NetworkAlgebra.h GenericMPoint.h MTPoint.h \
  UTPoint.h Thematic.h /home/secondo/secondo/include/AlgebraManager.h \
- ../Network/NetworkAlgebra.h ../MapMatching/MapMatchingMHT.h \
- ../MapMatching/MapMatchingUtil.h \
+ ../MapMatching/MapMatchingMHT.h ../MapMatching/MapMatchingUtil.h \
  ../MapMatching/MapMatchingNetworkInterface.h \
- ../MapMatching/../Spatial/Point.h ../MapMatching/MapMatchingData.h \
- ../Spatial/Point.h ../Network/NetworkManager.h \
- ../MapMatching/NetworkAdapter.h \
+ ../MapMatching/../Spatial/Point.h ../Network/NetworkAlgebra.h \
+ ../MapMatching/MapMatchingData.h ../Spatial/Point.h \
+ ../Network/NetworkManager.h ../MapMatching/NetworkAdapter.h \
  ../MapMatching/MapMatchingMHTMGPointCreator.h \
  ../MapMatching/MapMatchingMHT.h ../MapMatching/MHTRouteCandidate.h \
  ../MapMatching/NetworkSection.h ../Spatial/Point.h \

@@ -1114,22 +1114,23 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
         pGLine->SetSorted ( false );
         pGLine->SetDefined ( gp0.ShortestPath ( &gp1, pGLine, pNetwork,
                                                          0 ) );
-        RouteInterval ris; 
+        RouteInterval ri0,ri1; 
+
 
 
 
         for(int i = 0 ; i< pGLine->Size() ; i++){
-          pGLine->Get(i,ris);
-
+          pGLine->Get(i,ri0);
+          for(int j = 0 ; j < traj->Size() ; j++){
+            traj->Get(j,ri1);
+            if(ri0.Intersects(&ri0,1.0)){
+              ((CcBool *)result.addr)->Set(true, true);
+              cout<<"Intersectó en ShortestPath"<<endl;
+              return 0;
+            }
+          }
         }
         NetworkManager::CloseNetwork(pNetwork);
-
-
-
-        pGLine->Print(cout);
-        cout<<endl;
-        cout<<"NetworkID"<<pNetwork->GetId()<<endl;
-
 
 
       ((CcBool *)result.addr)->Set(true, mgpoint.Passes(&gp0) &&  mgpoint.Passes(&gp1));
@@ -1171,23 +1172,23 @@ Returns periods where genericmpoint was alive
 */
 
 
-const string maps_duration[1][4] =
+const string maps_duration[1][2] =
 {
-  {GenericMPoint::BasicType(),GenericPoint::BasicType(),GenericPoint::BasicType(),CcBool::BasicType()},
+  {GenericMPoint::BasicType(),Periods::BasicType()},
   
 };
 
 ListExpr durationTM (ListExpr args)
 { 
   
-   return SimpleMaps<1,4>(maps_duration, args);
+   return SimpleMaps<1,2>(maps_duration, args);
 
 }
 
 int durationSelect(ListExpr args)
 { 
 
-   return SimpleSelect<1,4>(maps_duration, args);
+   return SimpleSelect<1,2>(maps_duration, args);
 }
 
 int durationVM( Word* args, Word& result, int message, Word& local,
@@ -1195,94 +1196,24 @@ int durationVM( Word* args, Word& result, int message, Word& local,
 {
   
   result = qp->ResultStorage(s);
-  //CcBool* res = static_cast<CcBool*> (result.addr);
+  Periods* res = static_cast<Periods*> (result.addr);
 
   GenericMPoint* mpoint = (GenericMPoint*) args[0].addr;
 
-  GenericPoint* point0 = (GenericPoint*) args[1].addr;
-  GenericPoint* point1 = (GenericPoint*) args[2].addr;
-
-  if ( ! mpoint->IsDefined()|| ! point0->IsDefined() || ! point1->IsDefined() ){
+  if ( ! mpoint->IsDefined()   ){
     ((CcBool *)result.addr)->Set( false, false );
     return 0;
   }
+  Periods defTime( 0 );
   if(mpoint->GetDefMPoint()){
-
-    if(point0->GetDefPoint() && point1->GetDefPoint()){
-      double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; 
-      Rectangle<2> accubbox(true,bbox);
-      Line line(0) ;
-      mpoint->GetMPoint().Trajectory(line);
-      if( accubbox.IsDefined() && line.IsDefined() )
-      {
-        Region reg( accubbox );
-        ((CcBool *)result.addr)->Set( true, line.Intersects(reg));
-      }
-    }else{
-      ((CcBool *)result.addr)->Set( false, false );
-      return 0;
-    }
-
+    
+    mpoint->GetMPoint().DefTime( defTime );
+    *res = defTime;
+   
   }else if(mpoint->GetDefMGPoint()){
-    if(point0->GetDefGPoint() && point1->GetDefGPoint()){
-
-  
-      MGPoint mgpoint = mpoint->GetMGPoint();
-      if( !mgpoint.IsDefined() ||
-         mgpoint.GetNoComponents() < 1 ) {
-        ((CcBool *)result.addr)->Set(false, false);
-        return 0;
-      }
-      GPoint gp0 = point0->GetGPoint();
-      if( !gp0.IsDefined()) {
-        ((CcBool *)result.addr)->Set(false, false);
-        return 0;
-      }
-      GPoint gp1 = point1->GetGPoint();
-      if( !gp1.IsDefined()) {
-        ((CcBool *)result.addr)->Set(false, false);
-        return 0;
-      }
-      
-
-        GLine* pGLine = new GLine(0);
-        GLine * traj = new GLine(0);
-
-        mgpoint.Trajectory(traj);
-        // DbArray<RouteInterval>* GetRouteIntervals()
-        
-        network::Network * pNetwork = NetworkManager::GetNetwork(gp0.GetNetworkId());
-
-
-        pGLine->SetSorted ( false );
-        pGLine->SetDefined ( gp0.ShortestPath ( &gp1, pGLine, pNetwork,
-                                                         0 ) );
-        RouteInterval ris; 
-
-
-
-        for(int i = 0 ; i< pGLine->Size() ; i++){
-          pGLine->Get(i,ris);
-
-        }
-        NetworkManager::CloseNetwork(pNetwork);
-
-
-
-        pGLine->Print(cout);
-        cout<<endl;
-        cout<<"NetworkID"<<pNetwork->GetId()<<endl;
-
-
-
-      ((CcBool *)result.addr)->Set(true, mgpoint.Passes(&gp0) &&  mgpoint.Passes(&gp1));
-      return 0;
-
-
-    }else{
-      ((CcBool *)result.addr)->Set( false, false );
-      return 0;
-    }
+    mpoint->GetMGPoint().DefTime( defTime );
+    *res = defTime; 
+    
   }
   
   
@@ -1341,7 +1272,7 @@ int subsequenceVM( Word* args, Word& result, int message, Word& local,
 
   GenericMPoint* mpoint0 = (GenericMPoint*) args[0].addr;
 
-  GenericMPoint* mpoint1 = (GenericMPoint*) args[0].addr;
+  GenericMPoint* mpoint1 = (GenericMPoint*) args[1].addr;
 
   if(!mpoint0->IsDefined() || !mpoint1->IsDefined() || mpoint0->GetDefMTPoint() || mpoint0->GetDefMTPoint()){
     ((CcBool *)result.addr)->Set( false, false );
@@ -1373,7 +1304,7 @@ int subsequenceVM( Word* args, Word& result, int message, Word& local,
   Line * traj1 = new Line(true);
 
   mp0->Trajectory(*traj0);
-  mp0->Trajectory(*traj1);
+  mp1->Trajectory(*traj1);
 
 
   traj0->Print(cout);
