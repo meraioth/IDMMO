@@ -1237,11 +1237,58 @@ Operator durationGMO( "gmo_duration", durationSpec,1 , durationMap,
 
 
 
-/*
+/*------------------------------------------------------------------------------
+
 1.1.1 ~gmo_subsequence~
 
 Returns periods where genericmpoint was alive
 */
+
+bool Subsequence(Line& PLine, Line& ALine){
+
+  double delta = 0.000001;
+  double minDist = numeric_limits<double>::max();
+  double dist = -1.0;
+  int cont = 0;
+
+  assert(PLine.IsDefined()); 
+  assert(ALine.IsDefined());
+  if(PLine.IsEmpty() || ALine.IsEmpty()){
+    return false;
+  }
+
+  assert(PLine.IsOrdered());
+  assert(ALine.IsOrdered());
+
+  Point p;
+  HalfSegment hs;
+  Points *vert = new Points(true);
+
+  ALine.Vertices(vert);
+
+  for(int i = 0; i < (int)vert; i++){ 
+    vert->Get(i, p); 
+    for(int j = 0; j < PLine.Size(); j++){
+      PLine.Get(j, hs);
+      if(hs.IsLeftDomPoint()){
+        dist = hs.Distance(p); //distancia de punto a segmento
+        minDist = MIN(minDist, dist);
+      }else{
+        return false;
+      }
+    }
+    if(minDist <= delta){
+      cont++;
+    }else{
+      return false;
+    }
+  }
+  if((int)vert == cont){ 
+    return true;
+  }else{
+    return false;
+  }
+}
 
 
 const string maps_subsequence[1][3] =
@@ -1310,7 +1357,8 @@ int subsequenceVM( Word* args, Word& result, int message, Word& local,
   traj0->Print(cout);
   traj1->Print(cout);
 
-  ((CcBool *)result.addr)->Set( true, true );
+
+  ((CcBool *)result.addr)->Set(true, Subsequence(*traj0, *traj1)); 
 
   return 0;
 }
@@ -1331,6 +1379,266 @@ Operator subsequenceGMO( "gmo_subsequence", subsequenceSpec,1 , subsequenceMap,
                          subsequenceSelect, subsequenceTM);
 
 
+/*
+1.1.1 ~gmo_intersects~
+
+*/
+
+bool Intersects(Line& PLine, Line& ALine){
+
+  assert(PLine.IsDefined()); 
+  assert(ALine.IsDefined());
+  if(PLine.IsEmpty() || ALine.IsEmpty())
+    return false;
+
+  assert(PLine.IsOrdered());
+  assert(ALine.IsOrdered());
+
+  HalfSegment hs1, hs2;
+
+  for(int i = 0; i < PLine.Size(); i++){
+    PLine.Get( i, hs1 );
+    if(hs1.IsLeftDomPoint()){
+      for(int j = 0; j < ALine.Size(); j++){
+        ALine.Get(j, hs2);
+        if(hs2.IsLeftDomPoint()){
+          if(hs1.Intersects(hs2)){ //intersección entre segmentos
+            return true;
+          }else{
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+
+const string maps_intersects[1][3] =
+{
+  {GenericMPoint::BasicType(),GenericMPoint::BasicType(),CcBool::BasicType()},
+  
+};
+
+ListExpr intersectsTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,3>(maps_intersects, args);
+
+}
+
+int intersectsSelect(ListExpr args)
+{ 
+
+   return SimpleSelect<1,3>(maps_intersects, args);
+}
+
+int intersectsVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  //CcBool* res = static_cast<CcBool*> (result.addr);
+
+  GenericMPoint* mpoint0 = (GenericMPoint*) args[0].addr;
+
+  GenericMPoint* mpoint1 = (GenericMPoint*) args[1].addr;
+
+  if(!mpoint0->IsDefined() || !mpoint1->IsDefined() || mpoint0->GetDefMTPoint() || mpoint0->GetDefMTPoint()){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;    
+  }
+
+  temporalalgebra::MPoint * mp0 = new temporalalgebra::MPoint(true);
+  temporalalgebra::MPoint * mp1 = new temporalalgebra::MPoint(true);
+  if(mpoint0->GetDomain() == FreeSpace){
+    
+    *mp0 = mpoint0->GetMPoint();
+  }else if(mpoint0->GetDomain() == Network){
+
+    mpoint0->GetMGPoint2()->Mgpoint2mpoint(mp0);
+
+
+  }
+
+
+  if(mpoint1->GetDomain() == FreeSpace){
+    
+    *mp1 = mpoint1->GetMPoint();
+  }else if(mpoint1->GetDomain() == Network){
+
+    mpoint1->GetMGPoint2()->Mgpoint2mpoint(mp1);
+  }
+
+  Line * traj0 = new Line(true);
+  Line * traj1 = new Line(true);
+
+  mp0->Trajectory(*traj0);
+  mp1->Trajectory(*traj1);
+
+
+  traj0->Print(cout);
+  traj1->Print(cout);
+
+
+  ((CcBool *)result.addr)->Set(true, Intersects(*traj0, *traj1)); 
+
+  return 0;
+}
+
+
+
+ValueMapping intersectsMap[] =
+{
+  intersectsVM
+  
+};
+
+const string intersectsSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator intersectsGMO( "gmo_intersects", intersectsSpec,1 , intersectsMap,
+                         intersectsSelect, intersectsTM);
+
+
+/*
+1.1.1 ~gmo_similarity~
+
+*/
+
+bool Similarity(Line& PLine, Line& ALine){
+
+  double delta = 0.000001;
+  double minDist;
+  int aux = 0;
+
+  assert(PLine.IsDefined()); 
+  assert(ALine.IsDefined());
+  if(PLine.IsEmpty() || ALine.IsEmpty())
+    return false;
+
+  assert(PLine.IsOrdered());
+  assert(ALine.IsOrdered());
+  
+  Point p1, p2;
+  Points *avert = new Points(true);
+  Points *pvert = new Points(true);
+  vector<Point> S;
+
+  ALine.Vertices(avert);
+  PLine.Vertices(pvert);
+
+  for(int i = 0; i < (int)avert; i++){
+    avert->Get(i, p1);
+    for(int j = aux; j < (int)pvert; j++){
+      pvert->Get(j, p2);
+      minDist = p1.Distance(p2); //distancia de punto a punto
+      if(minDist >= 0.0){
+        if(minDist <= delta){
+          S.push_back(p2);
+        }else{
+          if(j == 0){
+            return false;
+          }else{
+            aux = j; 
+            break;
+          }
+        }
+      }
+    }
+  }
+  return false;
+} 
+
+
+const string maps_similarity[1][3] =
+{
+  {GenericMPoint::BasicType(),GenericMPoint::BasicType(),CcBool::BasicType()},
+  
+};
+
+ListExpr similarityTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,3>(maps_similarity, args);
+
+}
+
+int similaritySelect(ListExpr args)
+{ 
+
+   return SimpleSelect<1,3>(maps_similarity, args);
+}
+
+int similarityVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  //CcBool* res = static_cast<CcBool*> (result.addr);
+
+  GenericMPoint* mpoint0 = (GenericMPoint*) args[0].addr;
+
+  GenericMPoint* mpoint1 = (GenericMPoint*) args[1].addr;
+
+  if(!mpoint0->IsDefined() || !mpoint1->IsDefined() || mpoint0->GetDefMTPoint() || mpoint0->GetDefMTPoint()){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;    
+  }
+
+  temporalalgebra::MPoint * mp0 = new temporalalgebra::MPoint(true);
+  temporalalgebra::MPoint * mp1 = new temporalalgebra::MPoint(true);
+  if(mpoint0->GetDomain() == FreeSpace){
+    
+    *mp0 = mpoint0->GetMPoint();
+  }else if(mpoint0->GetDomain() == Network){
+
+    mpoint0->GetMGPoint2()->Mgpoint2mpoint(mp0);
+
+
+  }
+
+
+  if(mpoint1->GetDomain() == FreeSpace){
+    
+    *mp1 = mpoint1->GetMPoint();
+  }else if(mpoint1->GetDomain() == Network){
+
+    mpoint1->GetMGPoint2()->Mgpoint2mpoint(mp1);
+  }
+
+  Line * traj0 = new Line(true);
+  Line * traj1 = new Line(true);
+
+  mp0->Trajectory(*traj0);
+  mp1->Trajectory(*traj1);
+
+
+  traj0->Print(cout);
+  traj1->Print(cout);
+
+
+  ((CcBool *)result.addr)->Set(true, Similarity(*traj0, *traj1)); 
+
+  return 0;
+}
+
+
+
+ValueMapping similarityMap[] =
+{
+  similarityVM
+  
+};
+
+const string similaritySpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator similarityGMO( "gmo_similarity", similaritySpec,1 , similarityMap,
+                         similaritySelect, similarityTM);
 
 
 
@@ -1374,6 +1682,8 @@ AddOperator(&presentGMO);
 AddOperator(&betweenGMO);
 AddOperator(&durationGMO);
 AddOperator(&subsequenceGMO);
+AddOperator(&intersectsGMO);
+AddOperator(&similarityGMO);
 
 
 }
