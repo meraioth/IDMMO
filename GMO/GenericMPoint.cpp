@@ -59,12 +59,13 @@ GenericMPoint::GenericMPoint(const GenericMPoint& other) :
       domain = Network;
 
     }else if(other.GetDefMTPoint()){
+      //cout<<"construct mpoint mtpoint case"<<endl;
       mtpoint = new MTPoint(other.GetMTPoint());
       mpoint = new MPoint(false);
       mgpoint = new MGPoint(false);
-      def_mgpoint = true;
+      def_mgpoint = false;
       def_mpoint = false;
-      def_mtpoint = false;
+      def_mtpoint = true;
       domain = FreeSpace;
     }
 	}else{
@@ -473,7 +474,7 @@ Word GenericMPoint::In(const ListExpr typeInfo, const ListExpr instance,
       if (domainList.isString() && domainList.str()!= "")
         {   
           domain = domainList.str();
-          cout<<"Domain : "<<domain<<endl;
+          //cout<<"Domain : "<<domain<<endl;
           
       }
       else

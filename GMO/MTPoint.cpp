@@ -38,11 +38,11 @@ void MTPoint::Clear()
 
 void MTPoint::Add( const UTPoint& unit )
 {
-  cout << "CALLED: MTPoint::Add" << endl;
+  //cout << "CALLED: MTPoint::Add" << endl;
   assert( unit.IsDefined() );
   assert( unit.IsValid() );
-  cout<<"Print utpoint:"<<endl;
-  unit.Print(cout);
+  //cout<<"Print utpoint:"<<endl;
+  //unit.Print(cout);
   if(!IsDefined() || !unit.IsDefined()){
     SetDefined( false );
     return;

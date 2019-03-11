@@ -409,7 +409,7 @@ int creategenericpoint_tpointVM( Word* args, Word& result, int message, Word& lo
                   Supplier s)
 {
   
-  cout<<"creategenericpoint_tpointVM"<<endl;
+  //cout<<"creategenericpoint_tpointVM"<<endl;
   result = qp->ResultStorage(s);
   GenericPoint* res = static_cast<GenericPoint*> (result.addr);
 
@@ -427,8 +427,8 @@ int creategenericpoint_tpointVM( Word* args, Word& result, int message, Word& lo
   //GenericPoint* t = new GenericPoint(*point);
   //*res = *t;
   res=new GenericPoint(*point);
-  res->GetTPoint().Print(cout);
-  cout<<endl;
+  //res->GetTPoint().Print(cout);
+  //cout<<endl;
   //t->DeleteIfAllowed();
   
   return 0;
@@ -541,6 +541,8 @@ int creategenericmpoint_mtpointVM( Word* args, Word& result, int message, Word& 
   GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
 
   MTPoint* point = (MTPoint*) args[0].addr;
+  //cout<<"Entro a VM genericmpoint mtpoint"<<endl;
+  //point->Print(cout);
   //res->Clear();
   if ( ! point->IsDefined()){
     res->SetDefined(false);
@@ -810,7 +812,7 @@ int map2fs_functionVM( Word* args, Word& result, int message, Word& local,
 
     GenericMPoint* outpoint =  new GenericMPoint(*temp);
 
-    outpoint->GetMPoint().Print(cout);
+    //outpoint->GetMPoint().Print(cout);
 
 
     *res = *outpoint;
@@ -894,7 +896,7 @@ int map2network_functionVM( Word* args, Word& result, int message, Word& local,
     //MGPoint* res = static_cast<MGPoint*>(result.addr);
     
     MGPoint* res = MPoint2MGPoint(point,pNetwork);
-    res->Print(cout);
+    //res->Print(cout);
     GenericMPoint * final = new GenericMPoint(*res);
     *res_final = *final;
     return 0;
@@ -937,7 +939,7 @@ const string maps_present[2][3] =
 
 ListExpr presentTM (ListExpr args)
 { 
-  cout<<"presentTM"<<endl;
+  //cout<<"presentTM"<<endl;
   
    return SimpleMaps<2,3>(maps_present, args);
 
@@ -946,14 +948,14 @@ ListExpr presentTM (ListExpr args)
 int presentSelect(ListExpr args)
 { 
   
-  cout<<"presentSelect"<<endl;
+  //cout<<"presentSelect"<<endl;
    return SimpleSelect<2,3>(maps_present, args);
 }
 
 int presentIVM( Word* args, Word& result, int message, Word& local,
                   Supplier s)
 {
-  cout<<"Entro a Instant"<<endl; 
+  //cout<<"Entro a Instant"<<endl; 
   result = qp->ResultStorage(s);
   CcBool* res = static_cast<CcBool*> (result.addr);
 
@@ -1125,7 +1127,7 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
             traj->Get(j,ri1);
             if(ri0.Intersects(&ri0,1.0)){
               ((CcBool *)result.addr)->Set(true, true);
-              cout<<"Intersectó en ShortestPath"<<endl;
+              //cout<<"Intersectó en ShortestPath"<<endl;
               return 0;
             }
           }
@@ -1307,8 +1309,8 @@ int subsequenceVM( Word* args, Word& result, int message, Word& local,
   mp1->Trajectory(*traj1);
 
 
-  traj0->Print(cout);
-  traj1->Print(cout);
+  //traj0->Print(cout);
+  //traj1->Print(cout);
 
   ((CcBool *)result.addr)->Set( true, true );
 

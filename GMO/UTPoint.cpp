@@ -29,9 +29,9 @@ temporalalgebra::SpatialTemporalUnit<gmo::TPoint, 3>( interval )
 UTPoint::UTPoint(const temporalalgebra::Interval<Instant>& interval, string tp_start, string tp_end):
 temporalalgebra::SpatialTemporalUnit<gmo::TPoint, 3>( interval ),tp_start(TPoint(tp_start)),tp_end(TPoint(tp_end))
 {	
-  cout<<"Entrada :"<<tp_start<<" "<<tp_end<<endl;
-  GetStart();
-  GetEnd();
+  //cout<<"Entrada :"<<tp_start<<" "<<tp_end<<endl;
+  //GetStart();
+  //GetEnd();
 }
 // UTPoint::UTPoint(const UTPoint& gP):temporalalgebra::SpatialTemporalUnit<gmo::TPoint, 3>( gP.IsDefined() ){
 // 	if(gP.IsDefined()){
@@ -59,13 +59,13 @@ UTPoint::~UTPoint(){};
 */
 
 TPoint UTPoint::GetStart() const{
-    cout<<"Start"<<tp_start.GetStop()<<endl;
+    //cout<<"Start"<<tp_start.GetStop()<<endl;
 
 	return tp_start;
 }
 
 TPoint UTPoint::GetEnd()const{
-  cout<<"End"<<tp_end.GetStop()<<endl;
+  //cout<<"End"<<tp_end.GetStop()<<endl;
 	return tp_end;
 }
 
@@ -187,7 +187,7 @@ bool UTPoint::operator>=(const UTPoint& other) const
 
  ListExpr UTPoint::Out(ListExpr typeInfo, Word value){
 	UTPoint* utpoint = (UTPoint*)(value.addr);
-  utpoint->Print(cout);
+  //utpoint->Print(cout);
   if( !(((UTPoint*)value.addr)->IsDefined()) )
   {
     return (nl->SymbolAtom("undefined"));
@@ -271,8 +271,8 @@ bool UTPoint::operator>=(const UTPoint& other) const
           nl->AtomType( nl->Second( second ) ) == StringType )
       {
         NList in_list(second);
-        cout<<"String values :"<<endl<<nl->StringValue( nl->First( second ) )<<" "<<nl->StringValue( nl->Second( second ) )<<endl;
-        cout<<"String values :"<<endl<<in_list.first().str()<<" "<<in_list.second().str()<<endl;
+        //cout<<"String values :"<<endl<<nl->StringValue( nl->First( second ) )<<" "<<nl->StringValue( nl->Second( second ) )<<endl;
+        //cout<<"String values :"<<endl<<in_list.first().str()<<" "<<in_list.second().str()<<endl;
         UTPoint *utpoint = new UTPoint(tinterval,
                                      nl->StringValue( nl->First( second ) ),
                                      nl->StringValue( nl->Second( second ) ));
