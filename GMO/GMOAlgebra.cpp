@@ -1236,6 +1236,79 @@ Operator durationGMO( "gmo_duration", durationSpec,1 , durationMap,
                          durationSelect, durationTM);
 
 
+/*
+1.1.1 ~map~
+
+Creates an ~mpoint~ from ~mtpoint~ .
+
+*/
+
+const string maps_gmo_in_thematic[1][3] =
+{
+  {CcString::BasicType(), ThematicPath::BasicType(), CcBool::BasicType()}
+};
+
+ListExpr gmo_in_thematicTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,3>(maps_gmo_in_thematic, args);
+
+}
+
+int gmo_in_thematicSelect(ListExpr args)
+{ 
+  
+
+  return SimpleSelect<1,3>(maps_gmo_in_thematic, args);
+}
+
+int gmo_in_thematicVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  CcString* unit = (CcString*) args[0].addr;
+
+  ThematicPath* path = (ThematicPath*) args[1].addr;
+  
+  
+  if ( ! unit->IsDefined() || ! path->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
+
+  for (int i = 0; i < path->GetNoComponents(); ++i)
+  {
+    ThematicUnit thematic_unit(true);
+    path->Get(i, thematic_unit);
+    if( thematic_unit.GetUnit() == (const char*)(unit->GetStringval())){
+      ((CcBool *)result.addr)->Set( true, true );
+      return 0;
+    }
+  }
+  
+  res->SetDefined(true);
+
+  ((CcBool *)result.addr)->Set( true, false );
+
+  
+  return 0;
+}
+
+ValueMapping gmo_in_thematicMap[] =
+{
+  gmo_in_thematicVM
+};
+
+const string gmo_in_thematicSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator gmo_in_thematicGMO( "in_thematic", gmo_in_thematicSpec,1 , gmo_in_thematicMap,
+                         gmo_in_thematicSelect, gmo_in_thematicTM);
+
 
 /*------------------------------------------------------------------------------
 
@@ -1684,6 +1757,7 @@ AddOperator(&durationGMO);
 AddOperator(&subsequenceGMO);
 AddOperator(&intersectsGMO);
 AddOperator(&similarityGMO);
+AddOperator(&gmo_in_thematicGMO);
 
 
 }
