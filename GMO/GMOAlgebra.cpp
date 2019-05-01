@@ -223,6 +223,18 @@ CheckMTPoint( ListExpr type, ListExpr& errorInfo )
   return (nl->IsEqual( type, MTPoint::BasicType() ));
 }
 
+TypeConstructor tpath(
+        TPath::BasicType(),               //name
+        TPath::Property,                  //property function
+        TPath::Out,   TPath::In,        //Out and In functions
+        0,              0,                  //SaveTo and RestoreFrom functions
+        TPath::Create,  TPath::Delete,  //object creation and deletion
+        TPath::Open,    TPath::Save,    //object open and save
+        TPath::Close,   TPath::Clone,   //object close and clone
+        TPath::Cast,                      //cast function
+        TPath::SizeOfObj,                 //sizeof function
+        TPath::KindCheck );               //kind checking function
+
 
 TypeConstructor gpointTC(
   GenericPoint::BasicType(),
@@ -312,6 +324,7 @@ TypeConstructor thematicunitTC(
   ThematicUnit::Cast,
   ThematicUnit::SizeOf,
   ThematicUnit::KindCheck);
+
 TypeConstructor thematicpathTC(
   ThematicPath::BasicType(),
   ThematicPath::Property,
@@ -324,6 +337,19 @@ TypeConstructor thematicpathTC(
   ThematicPath::Cast,
   ThematicPath::SizeOf,
   ThematicPath::KindCheck);
+
+TypeConstructor tempathTC(
+  TemPath::BasicType(),
+  TemPath::Property,
+  TemPath::Out, TemPath::In,
+  0, 0,
+  TemPath::Create, TemPath::Delete,
+  OpenAttribute<TemPath >,
+  SaveAttribute<TemPath >,
+  TemPath::Close, TemPath::Clone,
+  TemPath::Cast,
+  TemPath::SizeOfObj,
+  TemPath::KindCheck);
 
 
 /*
@@ -1670,6 +1696,12 @@ AddTypeConstructor(&thematicunitTC);
 thematicunitTC.AssociateKind(Kind::DATA());
 AddTypeConstructor(&thematicpathTC);
 thematicpathTC.AssociateKind(Kind::DATA());
+
+AddTypeConstructor(&tpath);
+tpath.AssociateKind(Kind::DATA());
+AddTypeConstructor(&tempathTC);
+tempathTC.AssociateKind(Kind::DATA());
+
 
 
 AddOperator(&creategenericmpointGMO);
