@@ -223,6 +223,18 @@ CheckMTPoint( ListExpr type, ListExpr& errorInfo )
   return (nl->IsEqual( type, MTPoint::BasicType() ));
 }
 
+TypeConstructor tpath(
+        TPath::BasicType(),               //name
+        TPath::Property,                  //property function
+        TPath::Out,   TPath::In,        //Out and In functions
+        0,              0,                  //SaveTo and RestoreFrom functions
+        TPath::Create,  TPath::Delete,  //object creation and deletion
+        TPath::Open,    TPath::Save,    //object open and save
+        TPath::Close,   TPath::Clone,   //object close and clone
+        TPath::Cast,                      //cast function
+        TPath::SizeOfObj,                 //sizeof function
+        TPath::KindCheck );               //kind checking function
+
 
 TypeConstructor gpointTC(
   GenericPoint::BasicType(),
@@ -312,6 +324,7 @@ TypeConstructor thematicunitTC(
   ThematicUnit::Cast,
   ThematicUnit::SizeOf,
   ThematicUnit::KindCheck);
+
 TypeConstructor thematicpathTC(
   ThematicPath::BasicType(),
   ThematicPath::Property,
@@ -324,6 +337,19 @@ TypeConstructor thematicpathTC(
   ThematicPath::Cast,
   ThematicPath::SizeOf,
   ThematicPath::KindCheck);
+
+TypeConstructor tempathTC(
+  TemPath::BasicType(),
+  TemPath::Property,
+  TemPath::Out, TemPath::In,
+  0, 0,
+  TemPath::Create, TemPath::Delete,
+  OpenAttribute<TemPath >,
+  SaveAttribute<TemPath >,
+  TemPath::Close, TemPath::Clone,
+  TemPath::Cast,
+  TemPath::SizeOfObj,
+  TemPath::KindCheck);
 
 
 /*
@@ -1238,6 +1264,79 @@ Operator durationGMO( "gmo_duration", durationSpec,1 , durationMap,
                          durationSelect, durationTM);
 
 
+/*
+1.1.1 ~map~
+
+Creates an ~mpoint~ from ~mtpoint~ .
+
+*/
+
+const string maps_gmo_in_thematic[1][3] =
+{
+  {CcString::BasicType(), TemPath::BasicType(), CcBool::BasicType()}
+};
+
+ListExpr gmo_in_thematicTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,3>(maps_gmo_in_thematic, args);
+
+}
+
+int gmo_in_thematicSelect(ListExpr args)
+{ 
+  
+
+  return SimpleSelect<1,3>(maps_gmo_in_thematic, args);
+}
+
+int gmo_in_thematicVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  CcString* unit = (CcString*) args[0].addr;
+
+  TemPath* path = (TemPath*) args[1].addr;
+  
+  
+  if ( ! unit->IsDefined() || ! path->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
+
+  for (int i = 0; i < path->GetNoUnits(); ++i)
+  {
+    ThematicUnit thematic_unit(path->GetUnit(i).unit);
+    
+    if( thematic_unit.GetUnit() == (const char*)(unit->GetStringval())){
+      ((CcBool *)result.addr)->Set( true, true );
+      return 0;
+    }
+  }
+  
+  res->SetDefined(true);
+
+  ((CcBool *)result.addr)->Set( true, false );
+
+  
+  return 0;
+}
+
+ValueMapping gmo_in_thematicMap[] =
+{
+  gmo_in_thematicVM
+};
+
+const string gmo_in_thematicSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator gmo_in_thematicGMO( "in_thematic", gmo_in_thematicSpec,1 , gmo_in_thematicMap,
+                         gmo_in_thematicSelect, gmo_in_thematicTM);
+
 
 /*------------------------------------------------------------------------------
 
@@ -1673,6 +1772,12 @@ thematicunitTC.AssociateKind(Kind::DATA());
 AddTypeConstructor(&thematicpathTC);
 thematicpathTC.AssociateKind(Kind::DATA());
 
+AddTypeConstructor(&tpath);
+tpath.AssociateKind(Kind::DATA());
+AddTypeConstructor(&tempathTC);
+tempathTC.AssociateKind(Kind::DATA());
+
+
 
 AddOperator(&creategenericmpointGMO);
 AddOperator(&creategenericpointGMO);
@@ -1686,6 +1791,7 @@ AddOperator(&durationGMO);
 AddOperator(&subsequenceGMO);
 AddOperator(&intersectsGMO);
 AddOperator(&similarityGMO);
+AddOperator(&gmo_in_thematicGMO);
 
 
 }

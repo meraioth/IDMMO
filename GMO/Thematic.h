@@ -78,7 +78,7 @@ namespace gmo{
     static void Close( const ListExpr typeInfo, Word& w );
     static Word Clone( const ListExpr typeInfo, const Word& w );
     static void* Cast( void* addr );
-    static bool KindCheck ( const ListExpr type, ListExpr& errorInfo );
+    static bool KindCheck ( const ListExpr type, ListExpr& derrorInfo );
     static int SizeOf();
     static ListExpr Property();
 
@@ -95,11 +95,11 @@ namespace gmo{
 3.12.1 Constructors and Destructor
 
 */
-    ThematicPath();
+    //ThematicPath();
 /*
 The simple constructor. This constructor should not be used.
 
-*/
+*/  ~ThematicPath();
 
     ThematicPath( const int n );
 /*
@@ -119,7 +119,8 @@ using a check on bbox.
   int Compare(const Attribute*) const;
   bool Adjacent(const Attribute*) const;
   size_t HashValue() const;
-
+  int NumOfFLOBs() const;
+  Flob *GetFLOB(const int i);
   int GetNoComponents() const;
   void Clear();
   void Add( const ThematicUnit& unit );
@@ -127,7 +128,12 @@ using a check on bbox.
   // void MergeAdd(const ThematicUnit& unit);
   std::ostream& Print( std::ostream &os ) const;
   bool operator==( const ThematicPath& r ) const;
+  bool Save( SmiRecord& valueRecord,
+             size_t& offset,
+             const ListExpr typeInfo,
+             Word& value );
   void Get( const int i, ThematicUnit &unit ) const;
+
 
   virtual Attribute* Clone() const
   {
@@ -172,7 +178,7 @@ using a check on bbox.
 
 
 
-  static const std::string BasicType(){ return "thematicpath"; }
+  static const std::string BasicType(){ return "thempath"; }
   static const bool checkType(const ListExpr type){
     return listutils::isSymbol(type, BasicType());
   }
@@ -206,11 +212,183 @@ A flag indicating whether the unit set is ordered or not.
 */
 
   protected:
+    ThematicPath();
     DbArray< ThematicUnit > units;
 /*
 The database array of temporal units.*/
 
 }; //end class
+
+class TPath : public Attribute
+{
+
+  public:
+    TPath( const int n);
+    ~TPath();
+
+    TPath(const TPath& src);
+    TPath& operator=(const TPath& src);
+
+    int NumOfFLOBs() const;
+    int GetNoUnits() const;
+    Flob *GetFLOB(const int i);
+    int Compare(const Attribute*) const;
+    bool Adjacent(const Attribute*) const;
+    TPath *Clone() const;
+    size_t Sizeof() const;
+    std::ostream& Print( std::ostream& os ) const;
+
+    void Append( const ThematicUnit &v );
+    void Destroy();
+    ThematicUnit GetUnit( int i ) const;
+    const bool IsEmpty() const;
+    void CopyFrom(const Attribute* right);
+    size_t HashValue() const;
+
+    friend std::ostream& operator <<( std::ostream& os, const TPath& p );
+
+    static Word     In( const ListExpr typeInfo, const ListExpr instance,
+                        const int errorPos, ListExpr& errorInfo,
+                        bool& correct );
+
+    static ListExpr Out( ListExpr typeInfo, Word value );
+
+    static Word     Create( const ListExpr typeInfo );
+
+    static void     Delete( const ListExpr typeInfo, Word& w );
+
+    static void     Close( const ListExpr typeInfo, Word& w );
+
+    static bool     Save( SmiRecord& valueRecord, size_t& offset,
+                          const ListExpr typeInfo, Word& value    );
+
+    static bool     Open( SmiRecord& valueRecord, size_t& offset,
+                          const ListExpr typeInfo, Word& value    );
+
+    static Word     Clone( const ListExpr typeInfo, const Word& w );
+
+
+    static bool     KindCheck( ListExpr type, ListExpr& errorInfo );
+
+    static int      SizeOfObj();
+
+    static ListExpr Property();
+
+    static void* Cast(void* addr);
+
+    static const std::string BasicType() { return "thpath"; }
+    static const bool checkType(const ListExpr type){
+      return listutils::isSymbol(type, BasicType());
+    }
+
+  private:
+    TPath() {} // this constructor is reserved for the cast function.
+    DbArray<ThematicUnit> units;
+    
+};
+
+
+struct Unit
+{
+  Unit() {}
+/*
+Do not use this constructor.
+
+*/
+
+  Unit( char _unit[20])
+    {
+      sprintf(unit, "%s", _unit);
+    }
+
+  Unit(const Unit& v){
+    sprintf(unit, "%s", v.unit);
+  }
+
+  Unit& operator=(const Unit& v){
+    sprintf(unit, "%s", v.unit); 
+    return *this;
+  }
+
+  ~Unit(){}
+
+  char unit[20];
+};
+
+
+/*
+
+2.3 Class TemPath
+
+*/
+class TemPath : public Attribute
+{
+
+  public:
+    TemPath( const int n, const char unit_[20] = 0);
+    ~TemPath();
+
+    TemPath(const TemPath& src);
+    TemPath& operator=(const TemPath& src);
+
+    int NumOfFLOBs() const;
+    Flob *GetFLOB(const int i);
+    int Compare(const Attribute*) const;
+    bool Adjacent(const Attribute*) const;
+    TemPath *Clone() const;
+    size_t Sizeof() const;
+    std::ostream& Print( std::ostream& os ) const;
+
+    void Append( const Unit &v );
+    void Complete();
+    bool Correct();
+    void Destroy();
+    int GetNoUnits() const;
+    Unit GetUnit( int i ) const;
+    const bool IsEmpty() const;
+    void CopyFrom(const Attribute* right);
+    size_t HashValue() const;
+
+    friend std::ostream& operator <<( std::ostream& os, const TemPath& p );
+
+    static Word     In( const ListExpr typeInfo, const ListExpr instance,
+                        const int errorPos, ListExpr& errorInfo,
+                        bool& correct );
+
+    static ListExpr Out( ListExpr typeInfo, Word value );
+
+    static Word     Create( const ListExpr typeInfo );
+
+    static void     Delete( const ListExpr typeInfo, Word& w );
+
+    static void     Close( const ListExpr typeInfo, Word& w );
+
+    static bool     Save( SmiRecord& valueRecord, size_t& offset,
+                          const ListExpr typeInfo, Word& value    );
+
+    static bool     Open( SmiRecord& valueRecord, size_t& offset,
+                          const ListExpr typeInfo, Word& value    );
+
+    static Word     Clone( const ListExpr typeInfo, const Word& w );
+
+
+    static bool     KindCheck( ListExpr type, ListExpr& errorInfo );
+
+    static int      SizeOfObj();
+
+    static ListExpr Property();
+
+    static void* Cast(void* addr);
+
+    static const std::string BasicType() { return "thematicpath"; }
+    static const bool checkType(const ListExpr type){
+      return listutils::isSymbol(type, BasicType());
+    }
+
+  private:
+    TemPath() {} // this constructor is reserved for the cast function.
+    DbArray<Unit> units;
+};
 
 }//end namespace
 
