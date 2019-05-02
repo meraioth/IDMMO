@@ -1271,7 +1271,7 @@ Creates an ~mpoint~ from ~mtpoint~ .
 
 const string maps_gmo_in_thematic[1][3] =
 {
-  {CcString::BasicType(), ThematicPath::BasicType(), CcBool::BasicType()}
+  {CcString::BasicType(), TemPath::BasicType(), CcBool::BasicType()}
 };
 
 ListExpr gmo_in_thematicTM (ListExpr args)
@@ -1297,7 +1297,7 @@ int gmo_in_thematicVM( Word* args, Word& result, int message, Word& local,
 
   CcString* unit = (CcString*) args[0].addr;
 
-  ThematicPath* path = (ThematicPath*) args[1].addr;
+  TemPath* path = (TemPath*) args[1].addr;
   
   
   if ( ! unit->IsDefined() || ! path->IsDefined()){
@@ -1305,10 +1305,10 @@ int gmo_in_thematicVM( Word* args, Word& result, int message, Word& local,
     return 0;
   }
 
-  for (int i = 0; i < path->GetNoComponents(); ++i)
+  for (int i = 0; i < path->GetNoUnits(); ++i)
   {
-    ThematicUnit thematic_unit(true);
-    path->Get(i, thematic_unit);
+    ThematicUnit thematic_unit(path->GetUnit(i).unit);
+    
     if( thematic_unit.GetUnit() == (const char*)(unit->GetStringval())){
       ((CcBool *)result.addr)->Set( true, true );
       return 0;

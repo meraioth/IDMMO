@@ -296,7 +296,7 @@ Do not use this constructor.
 
 */
 
-  Unit( char _unit[10])
+  Unit( char _unit[20])
     {
       sprintf(unit, "%s", _unit);
     }
@@ -312,7 +312,7 @@ Do not use this constructor.
 
   ~Unit(){}
 
-  char unit[10];
+  char unit[20];
 };
 
 
@@ -325,7 +325,7 @@ class TemPath : public Attribute
 {
 
   public:
-    TemPath( const int n, const char unit_[10] = 0);
+    TemPath( const int n, const char unit_[20] = 0);
     ~TemPath();
 
     TemPath(const TemPath& src);

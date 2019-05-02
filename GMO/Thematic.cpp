@@ -1116,7 +1116,7 @@ std::ostream& operator<<(std::ostream& os, const TemPath& p)
 This first constructor creates a new polygon.
 
 */
-TemPath::TemPath( const int n, const char unit_[10]) :
+TemPath::TemPath( const int n, const char unit_[20]) :
   Attribute(true),
   units( n )
 {
@@ -1375,7 +1375,7 @@ TemPath::In( const ListExpr typeInfo, const ListExpr instance,
         nl->IsAtom( nl->First( first ) ) &&
         nl->AtomType( nl->First( first ) ) == StringType )
     {
-      Unit v(  const_cast<char*>( nl->StringValue( nl->First( first ) ).c_str())   );
+      Unit v(  const_cast<char*>( nl->StringValue( nl->First( first ) ).substr(0,19).c_str())   );
       polygon->Append( v );
     }
     else
