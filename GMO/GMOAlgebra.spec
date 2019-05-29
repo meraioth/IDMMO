@@ -11,4 +11,5 @@ operator gmo_subsequence alias GMO_SUBSEQUENCE pattern op (_ , _ )
 operator gmo_intersects alias GMO_INTERSECTS pattern op (_ , _ )
 operator gmo_similarity alias GMO_SIMILARITY pattern op (_ , _ )
 operator in_thematic alias IN_THEMATIC pattern op (_ , _ )
-
+operator mt_between alias MT_BETWEEN pattern op (_ , _ , _)
+operator net_between alias NET_BETWEEN pattern op (_ , _ , _)
