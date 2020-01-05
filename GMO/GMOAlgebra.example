@@ -71,3 +71,10 @@ Signature:  mtpoint x tpoint x tpoint -> bool
 Example  : query gmo_between([const genericmpoint value ("Network" ( (("2007-01-01" "2007-01-02" TRUE FALSE)(1 1 1 0.2 2.4))(("2007-01-02" "2007-01-03" TRUE TRUE )(1 2 1 0.0 1.0))) )],[const genericpoint value ("Network" (1 1 10.0 1))],[const genericpoint value ("Network" (1 1 30.0 1))])
 Result   : TRUE
 Tolerance: 0.01%
+
+Operator : mt_present
+Number   : 8
+Signature:  mtpoint x instant -> bool, mtpoint x periods -> bool
+Example  : query gmo_between([const genericmpoint value ("Network" ( (("2007-01-01" "2007-01-02" TRUE FALSE)(1 1 1 0.2 2.4))(("2007-01-02" "2007-01-03" TRUE TRUE )(1 2 1 0.0 1.0))) )],[const genericpoint value ("Network" (1 1 10.0 1))],[const genericpoint value ("Network" (1 1 30.0 1))])
+Result   : TRUE
+Tolerance: 0.01%

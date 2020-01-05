@@ -232,6 +232,7 @@ bool TPoint::operator>=(const TPoint& other) const
 
 ListExpr TPoint::Out(ListExpr typeInfo, Word value)
 { 
+  cout<<"TPoint::Out"<<value.addr<<endl;
   TPoint* actValue = (TPoint*) value.addr;
   
   if (!actValue->IsDefined())
@@ -248,6 +249,7 @@ Word TPoint::In(const ListExpr typeInfo, const ListExpr instance,
                const int errorPos, ListExpr& errorInfo, bool& correct)
 {  
 
+
   NList in_list(instance);
   if (in_list.length() == 0)
   { 
@@ -263,6 +265,7 @@ Word TPoint::In(const ListExpr typeInfo, const ListExpr instance,
   		
       TPoint* tpoint = new TPoint(in_list.first().str());
  	  correct=true;
+    cout<<"TPoint:in "<<tpoint<<endl;
       return SetWord(tpoint);
      }else{
      	correct = false;

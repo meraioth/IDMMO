@@ -18,6 +18,7 @@
 #include "TPoint.h"
 #include "UTPoint.h"
 #include "Thematic.h"
+#include "Temp.h"
 #include "QueryProcessor.h"   // needed for implementing value mappings
 #include "AlgebraManager.h"   // e.g., check for certain kind
 #include "../Network/NetworkAlgebra.h"
@@ -235,6 +236,19 @@ TypeConstructor tpath(
         TPath::SizeOfObj,                 //sizeof function
         TPath::KindCheck );               //kind checking function
 
+
+TypeConstructor tempoTC(
+        Temp::BasicType(),               //name
+        Temp::Property,                  //property function
+        Temp::Out,   Temp::In,        //Out and In functions
+        0,              0,                  //SaveTo and RestoreFrom functions
+        Temp::Create,  Temp::Delete,  //object creation and deletion
+        OpenAttribute<Temp >,
+  SaveAttribute<Temp >,
+        Temp::Close,   Temp::Clone,   //object close and clone
+        Temp::Cast,                      //cast function
+        Temp::SizeOf,                 //sizeof function
+        Temp::KindCheck);               //kind checking function
 
 TypeConstructor gpointTC(
   GenericPoint::BasicType(),
@@ -1050,6 +1064,92 @@ Operator presentGMO( "gmo_present", presentSpec,2 , presentMap,
 
 
 /*
+1.1.1 ~mt_present~
+
+Return true if mtpoint is alive in the Period or Instant
+*/
+
+
+const string maps_mt_present[2][3] =
+{
+  {MTPoint::BasicType(),Instant::BasicType(),CcBool::BasicType()},
+  {MTPoint::BasicType(),Periods::BasicType(),CcBool::BasicType()}
+  
+};
+
+ListExpr mt_presentTM (ListExpr args)
+{ 
+  //cout<<"mt_presentTM"<<endl;
+  
+   return SimpleMaps<2,3>(maps_mt_present, args);
+
+}
+
+int mt_presentSelect(ListExpr args)
+{ 
+  
+  //cout<<"mt_presentSelect"<<endl;
+   return SimpleSelect<2,3>(maps_mt_present, args);
+}
+
+int mt_presentIVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  //cout<<"Entro a Instant"<<endl; 
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  MTPoint* point0 = (MTPoint*) args[0].addr;
+
+  Instant* instant = (Instant*) args[1].addr;
+
+  if ( ! point0->IsDefined()|| ! instant->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  res->Set( true, point0->Present( *instant ) );
+  
+  
+  return 0;
+}
+
+
+int mt_presentPVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  MTPoint* point0 = (MTPoint*) args[0].addr;
+
+  Periods* periods = (Periods*) args[1].addr;
+
+
+  
+  if ( ! point0->IsDefined()|| ! periods->IsDefined()  || periods->IsEmpty() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  res->Set( true, point0->Present( *periods ) );
+  
+  return 0;
+}
+
+ValueMapping mt_presentMap[] =
+{
+  mt_presentIVM,
+  mt_presentPVM
+};
+
+const string mt_presentSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator mt_presentGMO( "mt_present", mt_presentSpec,2 , mt_presentMap,
+                         mt_presentSelect, mt_presentTM);
+
+/*
 1.1.1 ~gmo_between~
 
 Return true if genericmpoint is between two identifiers
@@ -1094,18 +1194,21 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
   if(mpoint->GetDefMPoint()){
 
     if(point0->GetDefPoint() && point1->GetDefPoint()){
-      //double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; 
+      //double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; ""
       
       Rectangle<2> *accubbox = new Rectangle<2>(true, std::min(point0->GetPoint().GetX(), point1->GetPoint().GetX()),
                                   std::max(point0->GetPoint().GetX(), point1->GetPoint().GetX()),
                                   std::min(point0->GetPoint().GetY(), point1->GetPoint().GetY()),
                                   std::max(point0->GetPoint().GetY(), point1->GetPoint().GetY()));
+      cout<<"Rectangle"<<endl;
+      accubbox->Print(cout);
       Line line(0) ;
       mpoint->GetMPoint().Trajectory(line);
       //accubbox->Print(cout);
       if( accubbox->IsDefined() && line.IsDefined() )
       {
         Region *reg = new Region( *accubbox );
+        reg->Print(cout);
         ((CcBool *)result.addr)->Set( true, line.Intersects(*reg));
       }
     }else{
@@ -1158,6 +1261,7 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
             traj->Get(j,ri1);
             if(ri0.Intersects(&ri0,1.0)){
               ((CcBool *)result.addr)->Set(true, true);
+              NetworkManager::CloseNetwork(pNetwork);
               //cout<<"Intersectó en ShortestPath"<<endl;
               return 0;
             }
@@ -2006,6 +2110,9 @@ tpath.AssociateKind(Kind::DATA());
 AddTypeConstructor(&tempathTC);
 tempathTC.AssociateKind(Kind::DATA());
 
+AddTypeConstructor(&tempoTC);
+tempoTC.AssociateKind(Kind::DATA());
+
 
 
 AddOperator(&creategenericmpointGMO);
@@ -2015,6 +2122,7 @@ AddOperator(&map_functionGMO);
 AddOperator(&map2fs_functionGMO);
 AddOperator(&map2network_functionGMO);
 AddOperator(&presentGMO);
+AddOperator(&mt_presentGMO);
 AddOperator(&betweenGMO);
 AddOperator(&durationGMO);
 AddOperator(&subsequenceGMO);
