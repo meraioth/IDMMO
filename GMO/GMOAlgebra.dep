@@ -88,7 +88,8 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  ../BTree/BTreeAlgebra.h ../Temporal/TemporalAlgebra.h IGenericPoint.h \
  ../TemporalNet/TemporalNetAlgebra.h ../TemporalNet/../Spatial/Geoid.h \
  ../TemporalNet/../Network/NetworkAlgebra.h GenericMPoint.h MTPoint.h \
- UTPoint.h Thematic.h /home/secondo/secondo/include/AlgebraManager.h \
+ UTPoint.h Thematic.h Temp.h \
+ /home/secondo/secondo/include/AlgebraManager.h \
  ../MapMatching/MapMatchingMHT.h ../MapMatching/MapMatchingUtil.h \
  ../MapMatching/MapMatchingNetworkInterface.h \
  ../MapMatching/../Spatial/Point.h ../Network/NetworkAlgebra.h \

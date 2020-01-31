@@ -295,7 +295,6 @@ const bool GenericPoint::checkType(const ListExpr type)
 GenericPoint& GenericPoint::operator=(const GenericPoint& other)
 {
   SetDefined(other.IsDefined());
-  cout<<"Other.IsDefined inside = :"<<other.IsDefined()<<endl;
 
   if (other.IsDefined())
   {

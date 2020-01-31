@@ -18,6 +18,7 @@
 #include "TPoint.h"
 #include "UTPoint.h"
 #include "Thematic.h"
+#include "Temp.h"
 #include "QueryProcessor.h"   // needed for implementing value mappings
 #include "AlgebraManager.h"   // e.g., check for certain kind
 #include "../Network/NetworkAlgebra.h"
@@ -223,6 +224,31 @@ CheckMTPoint( ListExpr type, ListExpr& errorInfo )
   return (nl->IsEqual( type, MTPoint::BasicType() ));
 }
 
+TypeConstructor tpath(
+        TPath::BasicType(),               //name
+        TPath::Property,                  //property function
+        TPath::Out,   TPath::In,        //Out and In functions
+        0,              0,                  //SaveTo and RestoreFrom functions
+        TPath::Create,  TPath::Delete,  //object creation and deletion
+        TPath::Open,    TPath::Save,    //object open and save
+        TPath::Close,   TPath::Clone,   //object close and clone
+        TPath::Cast,                      //cast function
+        TPath::SizeOfObj,                 //sizeof function
+        TPath::KindCheck );               //kind checking function
+
+
+TypeConstructor tempoTC(
+        Temp::BasicType(),               //name
+        Temp::Property,                  //property function
+        Temp::Out,   Temp::In,        //Out and In functions
+        0,              0,                  //SaveTo and RestoreFrom functions
+        Temp::Create,  Temp::Delete,  //object creation and deletion
+        OpenAttribute<Temp >,
+  SaveAttribute<Temp >,
+        Temp::Close,   Temp::Clone,   //object close and clone
+        Temp::Cast,                      //cast function
+        Temp::SizeOf,                 //sizeof function
+        Temp::KindCheck);               //kind checking function
 
 TypeConstructor gpointTC(
   GenericPoint::BasicType(),
@@ -312,6 +338,7 @@ TypeConstructor thematicunitTC(
   ThematicUnit::Cast,
   ThematicUnit::SizeOf,
   ThematicUnit::KindCheck);
+
 TypeConstructor thematicpathTC(
   ThematicPath::BasicType(),
   ThematicPath::Property,
@@ -324,6 +351,19 @@ TypeConstructor thematicpathTC(
   ThematicPath::Cast,
   ThematicPath::SizeOf,
   ThematicPath::KindCheck);
+
+TypeConstructor tempathTC(
+  TemPath::BasicType(),
+  TemPath::Property,
+  TemPath::Out, TemPath::In,
+  0, 0,
+  TemPath::Create, TemPath::Delete,
+  OpenAttribute<TemPath >,
+  SaveAttribute<TemPath >,
+  TemPath::Close, TemPath::Clone,
+  TemPath::Cast,
+  TemPath::SizeOfObj,
+  TemPath::KindCheck);
 
 
 /*
@@ -409,7 +449,7 @@ int creategenericpoint_tpointVM( Word* args, Word& result, int message, Word& lo
                   Supplier s)
 {
   
-  cout<<"creategenericpoint_tpointVM"<<endl;
+  //cout<<"creategenericpoint_tpointVM"<<endl;
   result = qp->ResultStorage(s);
   GenericPoint* res = static_cast<GenericPoint*> (result.addr);
 
@@ -427,8 +467,8 @@ int creategenericpoint_tpointVM( Word* args, Word& result, int message, Word& lo
   //GenericPoint* t = new GenericPoint(*point);
   //*res = *t;
   res=new GenericPoint(*point);
-  res->GetTPoint().Print(cout);
-  cout<<endl;
+  //res->GetTPoint().Print(cout);
+  //cout<<endl;
   //t->DeleteIfAllowed();
   
   return 0;
@@ -541,6 +581,8 @@ int creategenericmpoint_mtpointVM( Word* args, Word& result, int message, Word& 
   GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
 
   MTPoint* point = (MTPoint*) args[0].addr;
+  //cout<<"Entro a VM genericmpoint mtpoint"<<endl;
+  //point->Print(cout);
   //res->Clear();
   if ( ! point->IsDefined()){
     res->SetDefined(false);
@@ -810,7 +852,7 @@ int map2fs_functionVM( Word* args, Word& result, int message, Word& local,
 
     GenericMPoint* outpoint =  new GenericMPoint(*temp);
 
-    outpoint->GetMPoint().Print(cout);
+    //outpoint->GetMPoint().Print(cout);
 
 
     *res = *outpoint;
@@ -894,7 +936,7 @@ int map2network_functionVM( Word* args, Word& result, int message, Word& local,
     //MGPoint* res = static_cast<MGPoint*>(result.addr);
     
     MGPoint* res = MPoint2MGPoint(point,pNetwork);
-    res->Print(cout);
+    //res->Print(cout);
     GenericMPoint * final = new GenericMPoint(*res);
     *res_final = *final;
     return 0;
@@ -937,7 +979,7 @@ const string maps_present[2][3] =
 
 ListExpr presentTM (ListExpr args)
 { 
-  cout<<"presentTM"<<endl;
+  //cout<<"presentTM"<<endl;
   
    return SimpleMaps<2,3>(maps_present, args);
 
@@ -946,14 +988,14 @@ ListExpr presentTM (ListExpr args)
 int presentSelect(ListExpr args)
 { 
   
-  cout<<"presentSelect"<<endl;
+  //cout<<"presentSelect"<<endl;
    return SimpleSelect<2,3>(maps_present, args);
 }
 
 int presentIVM( Word* args, Word& result, int message, Word& local,
                   Supplier s)
 {
-  cout<<"Entro a Instant"<<endl; 
+  //cout<<"Entro a Instant"<<endl; 
   result = qp->ResultStorage(s);
   CcBool* res = static_cast<CcBool*> (result.addr);
 
@@ -1022,6 +1064,92 @@ Operator presentGMO( "gmo_present", presentSpec,2 , presentMap,
 
 
 /*
+1.1.1 ~mt_present~
+
+Return true if mtpoint is alive in the Period or Instant
+*/
+
+
+const string maps_mt_present[2][3] =
+{
+  {MTPoint::BasicType(),Instant::BasicType(),CcBool::BasicType()},
+  {MTPoint::BasicType(),Periods::BasicType(),CcBool::BasicType()}
+  
+};
+
+ListExpr mt_presentTM (ListExpr args)
+{ 
+  //cout<<"mt_presentTM"<<endl;
+  
+   return SimpleMaps<2,3>(maps_mt_present, args);
+
+}
+
+int mt_presentSelect(ListExpr args)
+{ 
+  
+  //cout<<"mt_presentSelect"<<endl;
+   return SimpleSelect<2,3>(maps_mt_present, args);
+}
+
+int mt_presentIVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  //cout<<"Entro a Instant"<<endl; 
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  MTPoint* point0 = (MTPoint*) args[0].addr;
+
+  Instant* instant = (Instant*) args[1].addr;
+
+  if ( ! point0->IsDefined()|| ! instant->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  res->Set( true, point0->Present( *instant ) );
+  
+  
+  return 0;
+}
+
+
+int mt_presentPVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  MTPoint* point0 = (MTPoint*) args[0].addr;
+
+  Periods* periods = (Periods*) args[1].addr;
+
+
+  
+  if ( ! point0->IsDefined()|| ! periods->IsDefined()  || periods->IsEmpty() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  res->Set( true, point0->Present( *periods ) );
+  
+  return 0;
+}
+
+ValueMapping mt_presentMap[] =
+{
+  mt_presentIVM,
+  mt_presentPVM
+};
+
+const string mt_presentSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator mt_presentGMO( "mt_present", mt_presentSpec,2 , mt_presentMap,
+                         mt_presentSelect, mt_presentTM);
+
+/*
 1.1.1 ~gmo_between~
 
 Return true if genericmpoint is between two identifiers
@@ -1066,14 +1194,22 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
   if(mpoint->GetDefMPoint()){
 
     if(point0->GetDefPoint() && point1->GetDefPoint()){
-      double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; 
-      Rectangle<2> accubbox(true,bbox);
+      //double bbox[] = {point0->GetPoint().GetX(),point0->GetPoint().GetY(),point1->GetPoint().GetX(),point1->GetPoint().GetY()}; ""
+      
+      Rectangle<2> *accubbox = new Rectangle<2>(true, std::min(point0->GetPoint().GetX(), point1->GetPoint().GetX()),
+                                  std::max(point0->GetPoint().GetX(), point1->GetPoint().GetX()),
+                                  std::min(point0->GetPoint().GetY(), point1->GetPoint().GetY()),
+                                  std::max(point0->GetPoint().GetY(), point1->GetPoint().GetY()));
+      cout<<"Rectangle"<<endl;
+      accubbox->Print(cout);
       Line line(0) ;
       mpoint->GetMPoint().Trajectory(line);
-      if( accubbox.IsDefined() && line.IsDefined() )
+      //accubbox->Print(cout);
+      if( accubbox->IsDefined() && line.IsDefined() )
       {
-        Region reg( accubbox );
-        ((CcBool *)result.addr)->Set( true, line.Intersects(reg));
+        Region *reg = new Region( *accubbox );
+        reg->Print(cout);
+        ((CcBool *)result.addr)->Set( true, line.Intersects(*reg));
       }
     }else{
       ((CcBool *)result.addr)->Set( false, false );
@@ -1125,7 +1261,8 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
             traj->Get(j,ri1);
             if(ri0.Intersects(&ri0,1.0)){
               ((CcBool *)result.addr)->Set(true, true);
-              cout<<"Intersectó en ShortestPath"<<endl;
+              NetworkManager::CloseNetwork(pNetwork);
+              //cout<<"Intersectó en ShortestPath"<<endl;
               return 0;
             }
           }
@@ -1141,6 +1278,44 @@ int betweenVM( Word* args, Word& result, int message, Word& local,
       ((CcBool *)result.addr)->Set( false, false );
       return 0;
     }
+  }else if(mpoint->GetDefMTPoint()){
+    //bool first,second;
+    int f=-1,s=-1;
+    if(point0->GetDefTPoint() && point1->GetDefTPoint()){
+        MTPoint mtpoint = mpoint->GetMTPoint();
+        if( !mtpoint.IsDefined() ||
+         mtpoint.GetNoComponents() < 1 ) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      TPoint gp0 = point0->GetTPoint();
+      if( !gp0.IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      } 
+      TPoint gp1 = point1->GetTPoint();
+      if( !gp1.IsDefined()) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      } 
+      for (int i = 0; i < mtpoint.GetNoComponents(); ++i)
+       {
+         UTPoint utp;
+         mtpoint.Get(i, utp);
+         if(gp0.GetStop() == utp.GetStart().GetStop())
+            f=i;
+          if(gp1.GetStop() == utp.GetStart().GetStop())
+            s=i;
+       } 
+
+      if(f !=-1 || s!=-1 ){
+        ((CcBool *)result.addr)->Set(true, true);
+        return 0;
+      }else{
+        ((CcBool *)result.addr)->Set( true, false );
+        return 0;
+      }
+    } 
   }
   
   
@@ -1161,6 +1336,192 @@ const string betweenSpec =
 
 Operator betweenGMO( "gmo_between", betweenSpec,1 , betweenMap,
                          betweenSelect, betweenTM);
+
+/*
+1.1.1 ~gmo_net_between~
+
+Returns periods where genericmpoint was alive
+*/
+
+
+const string maps_net_between[1][4] =
+{
+  {MGPoint::BasicType(),GPoint::BasicType(),GPoint::BasicType(),CcBool::BasicType()
+  },
+  
+};
+
+ListExpr net_betweenTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,4>(maps_net_between, args);
+
+}
+
+int net_betweenSelect(ListExpr args)
+{ 
+
+   return SimpleSelect<1,4>(maps_net_between, args);
+}
+
+int net_betweenVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  //CcBool* res = static_cast<CcBool*> (result.addr);
+
+  MGPoint* mpoint = (MGPoint*) args[0].addr;
+
+  GPoint* point0 = (GPoint*) args[1].addr;
+  GPoint* point1 = (GPoint*) args[2].addr;
+
+  if ( ! mpoint->IsDefined()|| ! point0->IsDefined() || ! point1->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  
+  
+      if( !mpoint->IsDefined() ||
+         mpoint->GetNoComponents() < 1 ) {
+        ((CcBool *)result.addr)->Set(false, false);
+        return 0;
+      }
+      
+      
+
+        GLine* pGLine = new GLine(0);
+        GLine * traj = new GLine(0);
+
+        mpoint->Trajectory(traj);
+        // DbArray<RouteInterval>* GetRouteIntervals()
+        
+        network::Network * pNetwork = NetworkManager::GetNetwork(point0->GetNetworkId());
+
+
+        pGLine->SetSorted ( false );
+        pGLine->SetDefined ( point0->ShortestPath ( point1, pGLine, pNetwork,
+                                                         0 ) );
+        RouteInterval ri0,ri1; 
+
+        for(int i = 0 ; i< pGLine->Size() ; i++){
+          pGLine->Get(i,ri0);
+          for(int j = 0 ; j < traj->Size() ; j++){
+            traj->Get(j,ri1);
+            if(ri0.Intersects(&ri0,1.0)){
+              ((CcBool *)result.addr)->Set(true, true);
+              //cout<<"Intersectó en ShortestPath"<<endl;
+              return 0;
+            }
+          }
+        }
+        NetworkManager::CloseNetwork(pNetwork);
+
+
+      ((CcBool *)result.addr)->Set(true, mpoint->Passes(point0) &&  mpoint->Passes(point1));
+      return 0;
+  
+}
+
+
+
+ValueMapping net_betweenMap[] =
+{
+  net_betweenVM
+  
+};
+
+const string net_betweenSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator net_betweenGMO( "net_between", net_betweenSpec,1 , net_betweenMap,
+                         net_betweenSelect, net_betweenTM);
+
+
+
+
+/*
+1.1.1 ~gmo_mt_between~
+
+Returns periods where genericmpoint was alive
+*/
+
+
+const string maps_mt_between[1][4] =
+{
+  {MTPoint::BasicType(),TPoint::BasicType(),TPoint::BasicType(),CcBool::BasicType()
+  },
+  
+};
+
+ListExpr mt_betweenTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,4>(maps_mt_between, args);
+
+}
+
+int mt_betweenSelect(ListExpr args)
+{ 
+
+   return SimpleSelect<1,4>(maps_mt_between, args);
+}
+
+int mt_betweenVM( Word* args, Word& result, int message, Word& local,
+                  Supplier sp)
+{
+  
+  result = qp->ResultStorage(sp);
+  //CcBool* res = static_cast<CcBool*> (result.addr);
+
+  MTPoint* mpoint = (MTPoint*) args[0].addr;
+
+  TPoint* point0 = (TPoint*) args[1].addr;
+  TPoint* point1 = (TPoint*) args[2].addr;
+
+  if ( ! mpoint->IsDefined()|| ! point0->IsDefined() || ! point1->IsDefined() ){
+    ((CcBool *)result.addr)->Set( false, false );
+    return 0;
+  }
+  int f=-1,s=-1;
+    for (int i = 0; i < mpoint->GetNoComponents(); ++i)
+     {
+       UTPoint utp;
+       mpoint->Get(i, utp);
+       if(point0->GetStop() == utp.GetStart().GetStop())
+          f=i;
+        if(point1->GetStop() == utp.GetStart().GetStop())
+          s=i;
+     } 
+
+    if(f !=-1 || s!=-1 ){
+      ((CcBool *)result.addr)->Set(true, true);
+      return 0;
+    }else{
+      ((CcBool *)result.addr)->Set( true, false );
+      return 0;
+    }
+   
+  
+  
+  return 0;
+}
+
+
+
+ValueMapping mt_betweenMap[] =
+{
+  mt_betweenVM
+  
+};
+
+const string mt_betweenSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator mt_betweenGMO( "mt_between", mt_betweenSpec,1 , mt_betweenMap,
+                         mt_betweenSelect, mt_betweenTM);
 
 
 
@@ -1245,7 +1606,7 @@ Creates an ~mpoint~ from ~mtpoint~ .
 
 const string maps_gmo_in_thematic[1][3] =
 {
-  {CcString::BasicType(), ThematicPath::BasicType(), CcBool::BasicType()}
+  {CcString::BasicType(), TemPath::BasicType(), CcBool::BasicType()}
 };
 
 ListExpr gmo_in_thematicTM (ListExpr args)
@@ -1271,7 +1632,7 @@ int gmo_in_thematicVM( Word* args, Word& result, int message, Word& local,
 
   CcString* unit = (CcString*) args[0].addr;
 
-  ThematicPath* path = (ThematicPath*) args[1].addr;
+  TemPath* path = (TemPath*) args[1].addr;
   
   
   if ( ! unit->IsDefined() || ! path->IsDefined()){
@@ -1279,10 +1640,10 @@ int gmo_in_thematicVM( Word* args, Word& result, int message, Word& local,
     return 0;
   }
 
-  for (int i = 0; i < path->GetNoComponents(); ++i)
+  for (int i = 0; i < path->GetNoUnits(); ++i)
   {
-    ThematicUnit thematic_unit(true);
-    path->Get(i, thematic_unit);
+    ThematicUnit thematic_unit(path->GetUnit(i).unit);
+    
     if( thematic_unit.GetUnit() == (const char*)(unit->GetStringval())){
       ((CcBool *)result.addr)->Set( true, true );
       return 0;
@@ -1427,8 +1788,8 @@ int subsequenceVM( Word* args, Word& result, int message, Word& local,
   mp1->Trajectory(*traj1);
 
 
-  traj0->Print(cout);
-  traj1->Print(cout);
+  //traj0->Print(cout);
+  //traj1->Print(cout);
 
 
   ((CcBool *)result.addr)->Set(true, Subsequence(*traj0, *traj1)); 
@@ -1744,6 +2105,15 @@ thematicunitTC.AssociateKind(Kind::DATA());
 AddTypeConstructor(&thematicpathTC);
 thematicpathTC.AssociateKind(Kind::DATA());
 
+AddTypeConstructor(&tpath);
+tpath.AssociateKind(Kind::DATA());
+AddTypeConstructor(&tempathTC);
+tempathTC.AssociateKind(Kind::DATA());
+
+AddTypeConstructor(&tempoTC);
+tempoTC.AssociateKind(Kind::DATA());
+
+
 
 AddOperator(&creategenericmpointGMO);
 AddOperator(&creategenericpointGMO);
@@ -1752,14 +2122,15 @@ AddOperator(&map_functionGMO);
 AddOperator(&map2fs_functionGMO);
 AddOperator(&map2network_functionGMO);
 AddOperator(&presentGMO);
+AddOperator(&mt_presentGMO);
 AddOperator(&betweenGMO);
 AddOperator(&durationGMO);
 AddOperator(&subsequenceGMO);
 AddOperator(&intersectsGMO);
 AddOperator(&similarityGMO);
 AddOperator(&gmo_in_thematicGMO);
-
-
+AddOperator(&mt_betweenGMO);
+AddOperator(&net_betweenGMO);
 }
 
 GMOAlgebra::~GMOAlgebra(){}
