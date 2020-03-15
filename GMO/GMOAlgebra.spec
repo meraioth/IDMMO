@@ -10,4 +10,5 @@ operator gmo_duration alias GMO_DURATION pattern op (_ , _ )
 operator gmo_subsequence alias GMO_SUBSEQUENCE pattern op (_ , _ )
 operator gmo_intersects alias GMO_INTERSECTS pattern op (_ , _ )
 operator gmo_similarity alias GMO_SIMILARITY pattern op (_ , _ )
+operator in_thematic alias IN_THEMATIC pattern op (_, _ )
 

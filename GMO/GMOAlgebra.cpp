@@ -223,6 +223,18 @@ CheckMTPoint( ListExpr type, ListExpr& errorInfo )
   return (nl->IsEqual( type, MTPoint::BasicType() ));
 }
 
+TypeConstructor tpath(
+        TPath::BasicType(),               //name
+        TPath::Property,                  //property function
+        TPath::Out,   TPath::In,        //Out and In functions
+        0,              0,                  //SaveTo and RestoreFrom functions
+        TPath::Create,  TPath::Delete,  //object creation and deletion
+        TPath::Open,    TPath::Save,    //object open and save
+        TPath::Close,   TPath::Clone,   //object close and clone
+        TPath::Cast,                      //cast function
+        TPath::SizeOfObj,                 //sizeof function
+        TPath::KindCheck ); 
+
 
 TypeConstructor gpointTC(
   GenericPoint::BasicType(),
@@ -312,6 +324,7 @@ TypeConstructor thematicunitTC(
   ThematicUnit::Cast,
   ThematicUnit::SizeOf,
   ThematicUnit::KindCheck);
+
 TypeConstructor thematicpathTC(
   ThematicPath::BasicType(),
   ThematicPath::Property,
@@ -324,6 +337,19 @@ TypeConstructor thematicpathTC(
   ThematicPath::Cast,
   ThematicPath::SizeOf,
   ThematicPath::KindCheck);
+
+TypeConstructor tempathTC(
+  TemPath::BasicType(),
+  TemPath::Property,
+  TemPath::Out, TemPath::In,
+  0, 0,
+  TemPath::Create, TemPath::Delete,
+  OpenAttribute<TemPath >,
+  SaveAttribute<TemPath >,
+  TemPath::Close, TemPath::Clone,
+  TemPath::Cast,
+  TemPath::SizeOfObj,
+  TemPath::KindCheck);
 
 
 /*
@@ -541,8 +567,6 @@ int creategenericmpoint_mtpointVM( Word* args, Word& result, int message, Word& 
   GenericMPoint* res = static_cast<GenericMPoint*> (result.addr);
 
   MTPoint* point = (MTPoint*) args[0].addr;
-  //cout<<"Entro a VM genericmpoint mtpoint"<<endl;
-  //point->Print(cout);
   //res->Clear();
   if ( ! point->IsDefined()){
     res->SetDefined(false);
@@ -1238,6 +1262,79 @@ Operator durationGMO( "gmo_duration", durationSpec,1 , durationMap,
                          durationSelect, durationTM);
 
 
+/*
+1.1.1 ~map~
+
+Creates an ~mpoint~ from ~mtpoint~ .
+
+*/
+
+const string maps_gmo_in_thematic[1][3] =
+{
+  {CcString::BasicType(), TemPath::BasicType(), CcBool::BasicType()}
+};
+
+ListExpr gmo_in_thematicTM (ListExpr args)
+{ 
+  
+   return SimpleMaps<1,3>(maps_gmo_in_thematic, args);
+
+}
+
+int gmo_in_thematicSelect(ListExpr args)
+{ 
+  
+
+  return SimpleSelect<1,3>(maps_gmo_in_thematic, args);
+}
+
+int gmo_in_thematicVM( Word* args, Word& result, int message, Word& local,
+                  Supplier s)
+{
+  
+  result = qp->ResultStorage(s);
+  CcBool* res = static_cast<CcBool*> (result.addr);
+
+  CcString* unit = (CcString*) args[0].addr;
+
+  TemPath* path = (TemPath*) args[1].addr;
+  
+  
+  if ( ! unit->IsDefined() || ! path->IsDefined()){
+    res->SetDefined(false);
+    return 0;
+  }
+
+  for (int i = 0; i < path->GetNoUnits(); ++i)
+  {
+    ThematicUnit thematic_unit(path->GetUnit(i).unit);
+    
+    if( thematic_unit.GetUnit() == (const char*)(unit->GetStringval())){
+      ((CcBool *)result.addr)->Set( true, true );
+      return 0;
+    }
+  }
+  
+  res->SetDefined(true);
+
+  ((CcBool *)result.addr)->Set( true, false );
+
+  
+  return 0;
+}
+
+ValueMapping gmo_in_thematicMap[] =
+{
+  gmo_in_thematicVM
+};
+
+const string gmo_in_thematicSpec =
+  "( ( \"Signature\" \"Syntax\" \"Meaning\" \"Example\" ) "
+  "(<text><text>query creategint(sourceid,targetid)</text--->))";
+
+Operator gmo_in_thematicGMO( "in_thematic", gmo_in_thematicSpec,1 , gmo_in_thematicMap,
+gmo_in_thematicSelect, gmo_in_thematicTM);
+
 
 /*------------------------------------------------------------------------------
 
@@ -1246,7 +1343,7 @@ Operator durationGMO( "gmo_duration", durationSpec,1 , durationMap,
 Returns periods where genericmpoint was alive
 */
 
-bool Subsequence(Line& PLine, Line& ALine){
+bool Subsequence(Line& PLine, Line& SLine){
 
   double delta = 0.000001;
   double minDist = numeric_limits<double>::max();
@@ -1254,26 +1351,26 @@ bool Subsequence(Line& PLine, Line& ALine){
   int cont = 0;
 
   assert(PLine.IsDefined()); 
-  assert(ALine.IsDefined());
-  if(PLine.IsEmpty() || ALine.IsEmpty()){
-    return false;
+  assert(SLine.IsDefined());
+  if(PLine.IsEmpty() || SLine.IsEmpty()){
+    return false; 
   }
 
   assert(PLine.IsOrdered());
-  assert(ALine.IsOrdered());
+  assert(SLine.IsOrdered());
 
   Point p;
   HalfSegment hs;
   Points *vert = new Points(true);
 
-  ALine.Vertices(vert);
+  SLine.Vertices(vert);
 
   for(int i = 0; i < (int)vert; i++){ 
     vert->Get(i, p); 
     for(int j = 0; j < PLine.Size(); j++){
       PLine.Get(j, hs);
       if(hs.IsLeftDomPoint()){
-        dist = hs.Distance(p); //distancia de punto a segmento
+        dist = hs.Distance(p); //distancia de segmento a punto
         minDist = MIN(minDist, dist);
       }else{
         return false;
@@ -1386,23 +1483,23 @@ Operator subsequenceGMO( "gmo_subsequence", subsequenceSpec,1 , subsequenceMap,
 
 */
 
-bool Intersects(Line& PLine, Line& ALine){
+bool Intersects(Line& PLine, Line& SLine){
 
   assert(PLine.IsDefined()); 
-  assert(ALine.IsDefined());
-  if(PLine.IsEmpty() || ALine.IsEmpty())
+  assert(SLine.IsDefined());
+  if(PLine.IsEmpty() || SLine.IsEmpty())
     return false;
 
   assert(PLine.IsOrdered());
-  assert(ALine.IsOrdered());
+  assert(SLine.IsOrdered());
 
   HalfSegment hs1, hs2;
 
   for(int i = 0; i < PLine.Size(); i++){
-    PLine.Get( i, hs1 );
+    PLine.Get(i, hs1);
     if(hs1.IsLeftDomPoint()){
-      for(int j = 0; j < ALine.Size(); j++){
-        ALine.Get(j, hs2);
+      for(int j = 0; j < SLine.Size(); j++){
+        SLine.Get(j, hs2);
         if(hs2.IsLeftDomPoint()){
           if(hs1.Intersects(hs2)){ //intersección entre segmentos
             return true;
@@ -1510,43 +1607,46 @@ Operator intersectsGMO( "gmo_intersects", intersectsSpec,1 , intersectsMap,
 
 */
 
-bool Similarity(Line& PLine, Line& ALine){
+bool Similarity(Line& PLine, Line& SLine){
 
   double delta = 0.000001;
-  double minDist;
+  double dist = -1.0;
   int aux = 0;
+  int cont = 0;
 
   assert(PLine.IsDefined()); 
-  assert(ALine.IsDefined());
-  if(PLine.IsEmpty() || ALine.IsEmpty())
+  assert(SLine.IsDefined());
+  if(PLine.IsEmpty() || SLine.IsEmpty())
     return false;
 
   assert(PLine.IsOrdered());
-  assert(ALine.IsOrdered());
+  assert(SLine.IsOrdered());
   
-  Point p1, p2;
-  Points *avert = new Points(true);
-  Points *pvert = new Points(true);
-  vector<Point> S;
+  Point p1, p2;//declara puntos para cada trayectoria
+  Points *svert = new Points(true); //puntero tipo puntos para almacenar puntos de trayectoria secundaria
+  Points *pvert = new Points(true); //puntero tipo puntos para almacenar puntos de trayectoria principal
+  vector<Point> S; //vector para almacenar subconjunto S de puntos
 
-  ALine.Vertices(avert);
-  PLine.Vertices(pvert);
+  SLine.Vertices(svert); //obtiene vertices (puntos) de trayectoria secundaria
+  PLine.Vertices(pvert); //obtiene vertices (puntos) de trayectoria principal
 
-  for(int i = 0; i < (int)avert; i++){
-    avert->Get(i, p1);
+  for(int i = 0; i < (int)svert; i++){ //for hasta numero de punto de trayectoria secundaria
+    svert->Get(i, p1); //toma punto en posición actual
     for(int j = aux; j < (int)pvert; j++){
       pvert->Get(j, p2);
-      minDist = p1.Distance(p2); //distancia de punto a punto
-      if(minDist >= 0.0){
-        if(minDist <= delta){
+      dist = p1.Distance(p2); //distancia de punto a punto
+      if(dist >= 0.0){
+        if(dist <= delta){ //si -1.0 <= 0.000001 retorna true
+          return true;
           S.push_back(p2);
+          cont++;
         }else{
           if(j == 0){
             return false;
           }else{
             aux = j; 
             break;
-          }
+          } 
         }
       }
     }
@@ -1673,6 +1773,11 @@ thematicunitTC.AssociateKind(Kind::DATA());
 AddTypeConstructor(&thematicpathTC);
 thematicpathTC.AssociateKind(Kind::DATA());
 
+AddTypeConstructor(&tpath);
+tpath.AssociateKind(Kind::DATA());
+AddTypeConstructor(&tempathTC);
+tempathTC.AssociateKind(Kind::DATA());
+
 
 AddOperator(&creategenericmpointGMO);
 AddOperator(&creategenericpointGMO);
@@ -1686,6 +1791,7 @@ AddOperator(&durationGMO);
 AddOperator(&subsequenceGMO);
 AddOperator(&intersectsGMO);
 AddOperator(&similarityGMO);
+AddOperator(&gmo_in_thematicGMO);
 
 
 }
