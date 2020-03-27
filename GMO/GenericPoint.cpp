@@ -93,18 +93,12 @@ GenericPoint::GenericPoint(const GPoint& ingpoint) :
 GenericPoint::GenericPoint(const TPoint& intpoint) :
   Attribute(true) 
 { 
-  cout<<"Entro a constructor tpoint"<<endl;
-  cout<<"IsDefined :"<<IsDefined()<<endl;
-  cout<<"T POINT:"<<endl;
-  intpoint.Print(cout);
   domain = FreeSpace;
   def_point = false;
   def_tpoint = true;
   def_gpoint =false;
   TPoint aux(intpoint);
   tpoint = aux;
-  cout<<"T POINT:"<<endl;
-  tpoint.Print(cout);
   gpoint=GPoint(false);
   point =  Point(false);
 }
@@ -315,17 +309,12 @@ GenericPoint& GenericPoint::operator=(const GenericPoint& other)
       gpoint = other.GetGPoint();
       domain = Network;
     }else if(other.GetDefTPoint()){
-      cout<<"other.GetDefTPoint()"<<endl;
-      other.GetTPoint().Print(cout);
       cout<<endl;
       def_point=false;
       def_tpoint=false;
       def_gpoint = false;
       point = Point(false);
       tpoint = other.GetTPoint();
-      cout<<"tpoint after assigment:"<<endl;
-      tpoint.Print(cout);
-      cout<<endl;
       gpoint = GPoint(false);
       domain = FreeSpace;
     }
@@ -380,8 +369,6 @@ bool GenericPoint::operator>=(const GenericPoint& other) const
 ListExpr GenericPoint::Out(ListExpr typeInfo, Word value)
 { 
   GenericPoint* actValue = (GenericPoint*) value.addr;
-  ostream & o = cout;
-  actValue->Print(o);
   if (!actValue->IsDefined())
     return nl->SymbolAtom(Symbol::UNDEFINED());
   else
@@ -401,8 +388,6 @@ ListExpr GenericPoint::Out(ListExpr typeInfo, Word value)
     }else if( actValue->GetDefTPoint()){
 
       TPoint tpoint = actValue->GetTPoint();
-      cout<<"OUT in TPoint"<<endl;
-      tpoint.Print(cout);cout<<endl;
       return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
       TPoint::Out(nl->TheEmptyList(),SetWord( &tpoint)));
 
@@ -482,8 +467,6 @@ Word GenericPoint::In(const ListExpr typeInfo, const ListExpr instance,
            TPoint* sS = (TPoint*) TPoint::In(nl->TheEmptyList(),nl->Second(instance), errorPos, errorInfo , correct).addr;
           if(correct){
             GenericPoint* out = new GenericPoint(*sS);
-            cout<<"Is correct IN:"<<endl;
-            out->Print(cout);
             return SetWord(out);
           }
         }

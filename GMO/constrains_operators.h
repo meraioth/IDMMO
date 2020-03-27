@@ -212,19 +212,10 @@ int simplificationVM( Word* args, Word& result, int message, Word& local,
     mpoint1->GetMGPoint2()->Mgpoint2mpoint(mp1);
   }
 
-  Line traj0(0);
-  Line traj1(0);
-
-  mp0->Trajectory(traj0);
-  mp1->Trajectory(traj1);
-
-
-  mp0->Print(cout);
-  mp1->Print(cout);
-
-
   ((CcBool *)result.addr)->Set(true, simplification(mp0, mp1)); 
 
+  delete mp0;
+  delete mp1;
   return 0;
 }
 
@@ -309,19 +300,11 @@ int groupVM( Word* args, Word& result, int message, Word& local,
     mpoint1->GetMGPoint2()->Mgpoint2mpoint(mp1);
   }
 
-  Line traj0(0);
-  Line traj1(0);
-
-  mp0->Trajectory(traj0);
-  mp1->Trajectory(traj1);
-
-
-  mp0->Print(cout);
-  mp1->Print(cout);
-
 
   ((CcBool *)result.addr)->Set(true, group(mp0, mp1)); 
 
+  delete mp0;
+  delete mp1;
   return 0;
 }
 
@@ -403,20 +386,10 @@ int partitionVM( Word* args, Word& result, int message, Word& local,
 
     mpoint1->GetMGPoint2()->Mgpoint2mpoint(mp1);
   }
-
-  Line traj0(0);
-  Line traj1(0);
-
-  mp0->Trajectory(traj0);
-  mp1->Trajectory(traj1);
-
-
-  mp0->Print(cout);
-  mp1->Print(cout);
-
-
   ((CcBool *)result.addr)->Set(true, partition(mp0, mp1)); 
 
+  delete mp0;
+  delete mp1;
   return 0;
 }
 
@@ -500,19 +473,9 @@ int similarityVM( Word* args, Word& result, int message, Word& local,
     mpoint1->GetMGPoint2()->Mgpoint2mpoint(mp1);
   }
 
-  Line traj0(0);
-  Line traj1(0);
-
-  mp0->Trajectory(traj0);
-  mp1->Trajectory(traj1);
-
-
-  mp0->Print(cout);
-  mp1->Print(cout);
-
-
   ((CcBool *)result.addr)->Set(true, similarity(mp0, mp1)); 
-
+  delete mp0;
+  delete mp1;
   return 0;
 }
 
@@ -601,23 +564,14 @@ int intersectsVM( Word* args, Word& result, int message, Word& local,
     mpoint1->GetMGPoint2()->Mgpoint2mpoint(mp1);
   }
 
-  Line * traj0 = new Line(true);
-  Line * traj1 = new Line(true);
-
-  mp0->Trajectory(*traj0);
-  mp1->Trajectory(*traj1);
 
 
-  traj0->Print(cout);
-  traj1->Print(cout);
-  Line line(0);
-  mpoint0->GetMPoint().Trajectory(line);
-  line.Print(cout);
-  cout<<endl;
 
   ((CcBool *)result.addr)->Set(true, intersection(mp0, mp1)); 
-
+  delete mp0;
+  delete mp1;
   return 0;
+  
 }
 
 
