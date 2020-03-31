@@ -1,0 +1,4 @@
+
+
+# Verificar que buses no salen al mismo tiempo para un recorrido
+query Bus feed head[1] {a} Bus feed head[1] {b} symmjoin[gmo_similarity(creategenericmpoint(.Journey_a), creategenericmpoint(..Journey_b)) and (.Recorrido_a = ..Recorrido_b)] count

@@ -466,7 +466,6 @@ void* Temp::Cast( void* addr )
 bool Temp::KindCheck ( ListExpr type, ListExpr& errorInfo )
 {
 	cout<<"calling Temp::KindCheck"<<endl;
-	cout<< NList(type).str()<<endl;;
   return checkType(type);
 }
 

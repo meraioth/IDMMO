@@ -57,18 +57,22 @@ namespace gmo{
 
 */
 
-bool similar_time_interval(temporalalgebra::UPoint& a, temporalalgebra::UPoint& b, int delta_time=300*1000){
+bool similar_time_interval(temporalalgebra::UPoint& a, temporalalgebra::UPoint& b, int delta_time=2*60*1000){
   Interval<Instant> a_interval = a.getTimeInterval();
   Interval<Instant> b_interval = b.getTimeInterval();
-  return (abs(a_interval.start.millisecondsToNull() - b_interval.start.millisecondsToNull()) < delta_time) && (abs(a_interval.end.millisecondsToNull() - b_interval.end.millisecondsToNull()) < delta_time);
+  //cout<<"(abs(a_interval.start.millisecondsToNull() - b_interval.start.millisecondsToNull()) < delta_time)"<<(abs(a_interval.start.millisecondsToNull() - b_interval.start.millisecondsToNull()) < delta_time)<<endl;
+  //cout<<"(a_interval.start.millisecondsToNull() < b_interval.start.millisecondsToNull() && a_interval.end.millisecondsToNull() > b_interval.start.millisecondsToNull())"<<(a_interval.start.millisecondsToNull() < b_interval.start.millisecondsToNull() && a_interval.end.millisecondsToNull() > b_interval.start.millisecondsToNull())<<endl;
+  //cout<<"(a_interval.start.millisecondsToNull() < b_interval.end.millisecondsToNull() && a_interval.end.millisecondsToNull() > b_interval.end.millisecondsToNull()"<<(a_interval.start.millisecondsToNull() < b_interval.end.millisecondsToNull() && a_interval.end.millisecondsToNull() > b_interval.end.millisecondsToNull())<<endl;
+  return ((abs(a_interval.start.millisecondsToNull() - b_interval.start.millisecondsToNull()) < delta_time) && (abs(a_interval.end.millisecondsToNull() - b_interval.end.millisecondsToNull()) < delta_time)) || (a_interval.start.millisecondsToNull() < b_interval.start.millisecondsToNull() && a_interval.end.millisecondsToNull() > b_interval.start.millisecondsToNull()) || (a_interval.start.millisecondsToNull() < b_interval.end.millisecondsToNull() && a_interval.end.millisecondsToNull() > b_interval.end.millisecondsToNull());
 }
 
-bool similar_space_interval(temporalalgebra::UPoint& a, temporalalgebra::UPoint& b, double delta_space=0.0001){
-    Line a_line(true), b_line(true);
+bool similar_space_interval(temporalalgebra::UPoint& a, temporalalgebra::UPoint& b, double delta_space=0.004){ // 400 mts aprox
+    Line a_line(true), b_line(true); 
     a.UTrajectory(a_line);
     b.UTrajectory(b_line);
     CcBool result(false);
     a_line.DistanceSmallerThan(b_line, delta_space, true, result);
+    //cout<<"result.GetBoolval();"<<result.GetBoolval()<<endl;
     return result.GetBoolval();
 }
 

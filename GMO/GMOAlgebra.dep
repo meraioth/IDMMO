@@ -98,4 +98,5 @@ GMOAlgebra.o: GMOAlgebra.cpp \
  ../MapMatching/MapMatchingMHTMGPointCreator.h \
  ../MapMatching/MapMatchingMHT.h ../MapMatching/MHTRouteCandidate.h \
  ../MapMatching/NetworkSection.h ../Spatial/Point.h \
- ../MapMatching/NetworkRoute.h ../TemporalNet/TemporalNetAlgebra.h
+ ../MapMatching/NetworkRoute.h ../TemporalNet/TemporalNetAlgebra.h \
+ constrains_operators.h
