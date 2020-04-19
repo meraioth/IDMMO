@@ -6,10 +6,10 @@
 #include "NList.h"
 #include "Symbols.h"
 #include "StandardTypes.h"
-// #include "../Network/NetworkAlgebra.h"
-// #include "../Spatial/SpatialAlgebra.h"
-#include "NetworkAlgebra.h"
-#include "SpatialAlgebra.h"
+#include "../Network/NetworkAlgebra.h"
+#include "../Spatial/SpatialAlgebra.h"
+//#include "NetworkAlgebra.h"
+//#include "SpatialAlgebra.h"
 #include "DateTime.h"
 #include <typeinfo>
 
@@ -32,18 +32,20 @@ The default constructor should never been used, except in the Cast-Function.
 */
 
 Temp::Temp() :
-	Attribute()
+	Attribute(), mtpoint(0)
 {}
 
 
 
 Temp::Temp(const Temp& other) :
-	Attribute(other.IsDefined())
+	Attribute(other.IsDefined()),mtpoint(other.GetMPoint().GetNoComponents())
 {
+  cout<<"Constructor Temp arg Temp"<<endl;
 	if(other.IsDefined()){
     if(other.GetDefMPoint()){
       //cout<<"construct mpoint mtpoint case"<<endl;
-      mtpoint = new MPoint(other.GetMPoint());
+      MPoint temp = other.GetMPoint();
+      mtpoint.CopyFrom(&temp);
       def_mtpoint = true;
       domain = FreeSpace;
     }
@@ -55,18 +57,31 @@ Temp::Temp(const Temp& other) :
 
 
 Temp::Temp(const MPoint& _mtpoint) :
-  Attribute(true) 
+  Attribute(true), mtpoint(_mtpoint.GetNoComponents())
 { 
+  cout<<"Constructor Temp arg MPoint"<<endl;
+  cout<<"arg is defined "<<_mtpoint.IsDefined()<<endl;
+  cout<<"TODO ver por que falla este metodo"<<endl;
+  cout<<_mtpoint.GetNoComponents()<<endl; 
+  MPoint temp(_mtpoint.GetNoComponents());
+  cout<<"pass constructor with integer"<<endl;
+  //mtpoint = MPoint(_mtpoint.GetNoComponents());
+  cout<<"is defined mtpoint"<<mtpoint.IsDefined()<<endl;
+  cout<<"mtpoint GetNoComponents "<<mtpoint.GetNoComponents()<<endl;
+  cout<<"Arg GetNoComponents"<<_mtpoint.GetNoComponents()<<endl;
  if(_mtpoint.IsDefined() ){
     domain = FreeSpace;
     
     def_mtpoint = true ;
-    mtpoint = new MPoint(_mtpoint);
+    mtpoint = MPoint(_mtpoint.GetNoComponents());
+    mtpoint.SetDefined(true);
+    mtpoint.CopyFrom(&_mtpoint);
 
   }else{
     SetDefined(false);
 
   }
+  cout<<"mtpoint GetNoComponents after assign "<<mtpoint.GetNoComponents()<<endl;
 }
 
 
@@ -88,8 +103,8 @@ bool Temp::GetDefMPoint()const{
 }
 
 MPoint Temp::GetMPoint()const{
-  MPoint other(*mtpoint);
-  return other;
+  //MPoint other(mtpoint);
+  return mtpoint;
 }
 
 
@@ -148,7 +163,7 @@ Attribute::StorageType Temp::GetStorageType() const
 
 size_t Temp::HashValue() const
 {
-  return (size_t) mtpoint->Sizeof() + (size_t) def_mtpoint;
+  return (size_t) mtpoint.Sizeof() + (size_t) def_mtpoint;
 }
 
 
@@ -255,7 +270,8 @@ Temp& Temp::operator=(const Temp& other)
     if(other.GetDefMPoint()){
       
       def_mtpoint=true;
-      mtpoint = new MPoint( other.GetMPoint());
+      MPoint temp = other.GetMPoint();
+      mtpoint.CopyFrom(&temp);
       domain = FreeSpace;
     }
     // targetid = other.GetTargetId();
@@ -310,21 +326,24 @@ bool Temp::operator>=(const Temp& other) const
 ListExpr Temp::Out(ListExpr typeInfo, Word value)
 { 
   cout<<"calling Temp::oUT"<<endl;
-  Temp* actValue = (Temp*) value.addr;
+  MPoint* actValue = (MPoint*) value.addr;
   cout<<"Pointer out"<<value.addr<<endl;
+  cout<<"actValue"<<actValue->Sizeof()<<endl;
+  cout<<actValue->GetNoComponents()<<endl;
+  //cout<<actValue->GetMPoint()<<endl;
   
   if (!actValue->IsDefined())
     return nl->SymbolAtom(Symbol::UNDEFINED());
   else
   {
-    if( actValue->GetDefMPoint()){
+    //if( actValue->GetDefMPoint()){
 
-      MPoint mgpoint = actValue->GetMPoint();
-      return nl->TwoElemList(nl->StringAtom(actValue->GetStrDomain()),
-      OutMapping<MPoint, UPoint, OutUPoint>(nl->TheEmptyList(),SetWord( &mgpoint)));
+      //MPoint mgpoint = actValue->GetMPoint();
+      return nl->OneElemList(
+      OutMapping<MPoint, UPoint, OutUPoint>(nl->TheEmptyList(),value));
 
-    }else //this case should never occur
-    return nl->SymbolAtom(Symbol::UNDEFINED());
+    //}else //this case should never occur
+    //return nl->SymbolAtom(Symbol::UNDEFINED());
     
   }
 }
@@ -398,11 +417,14 @@ Word Temp::In(const ListExpr typeInfo, const ListExpr instance,
                                        errorPos, errorInfo, correct ).addr;
           cout<<"Corrrect infunc" << correct<<endl;
           if( correct  ){
+            cout<<"Length of mpoint IN"<<value->Length()<<endl;
             Temp* mpt = new Temp(*value);
             cout<<"pointer mpoint func in"<<value<<endl;
-            delete value;
+            //delete value;
             cout<<"pointer func in"<<mpt<<endl;
-            return SetWord( mpt );
+            Word tmp = SetWord(value);
+            cout<<"SetWord"<<tmp.addr<<endl;
+            return SetWord( value );
           }
           if(value){
              delete value;
@@ -472,7 +494,7 @@ bool Temp::KindCheck ( ListExpr type, ListExpr& errorInfo )
 
 int Temp::SizeOf()
 {
-	cout<<"calling Temp::SizeOf"<<endl;
+	cout<<"calling Temp::SizeOf "<<sizeof(Temp)<<" "<<sizeof(mtpoint)<<endl;
   return sizeof(Temp);
 }
 

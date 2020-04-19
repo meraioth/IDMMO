@@ -2,12 +2,33 @@
 
 query CleanBus feed head[100] {a} CleanBus feed head[100] {b} symmjoin[(.Patente_a = ..Patente_b) and (.Recorrido_a # ..Recorrido_b) and gmo_intersects( creategenericmpoint(.Journey_a), creategenericmpoint(..Journey_b))] count
 
+query Bus_subset feed {a} Bus_subset feed {b} symmjoin[(.Patente_a = ..Patente_b) and (.Recorrido_a # ..Recorrido_b) and gmo_intersects( creategenericmpoint(.Journey_a), creategenericmpoint(..Journey_b))] count
+
 # 2 
 
- query CleanBus feed {a} CleanBus feed {b} symmjoin[(.Patente_a = ..Patente_b) and (.Correlativo_a # ..Correlativo_b) and gmo_intersects( creategenericmpoint(.Journey_a), creategenericmpoint(..Journey_b))] count
+ query Bus_subset feed {a} Bus_subset feed {b} symmjoin[(.Patente_a = ..Patente_b) and (.Correlativo_a # ..Correlativo_b) and gmo_intersects( creategenericmpoint(.Journey_a), creategenericmpoint(..Journey_b))] count
 
  # 3
 
-  query GTFS feed {a} GTFS feed {b} symmjoin[(.Recorrido_a = ..Recorrido_b) and (.Correlativo_a # ..Correlativo_b) and gmo_intersects( mapping("/home/secondo/Downloads/gtfsv23/stops.txt",creategenericmpoint(.Viaje_a)), mapping("/home/secondo/Downloads/gtfsv23/stops.txt",creategenericmpoint(..Viaje_b)))] count
+query GTFS feed {a} GTFS feed {b} symmjoin[(.Recorrido_a = ..Recorrido_b) and (.Correlativo_a # ..Correlativo_b) and gmo_intersects( mapping("/home/secondo/Downloads/gtfsv23/stops.txt",creategenericmpoint(.Viaje_a)), mapping("/home/secondo/Downloads/gtfsv23/stops.txt",creategenericmpoint(..Viaje_b)))] count
 
-    query GTFS feed head[10] {a} GTFS feed head[10] {b} symmjoin[(.Recorrido_a = ..Recorrido_b) and (.Correlativo_a # ..Correlativo_b) and gmo_intersects( mapping("/home/secondo/Downloads/gtfsv23/stops.txt",creategenericmpoint(.Viaje_a)), mapping("/home/secondo/Downloads/gtfsv23/stops.txt",creategenericmpoint(..Viaje_b)))] count
+query GTFS_subset feed {a} GTFS_subset feed  {b} symmjoin[(.Recorrido_a = ..Recorrido_b) and (.Correlativo_a # ..Correlativo_b) and gmo_intersects( mapping("/home/mera/Descargas/gtfsv23/stops.txt",creategenericmpoint(.Viaje_a)), mapping("/home/mera/Descargas/gtfsv23/stops.txt",creategenericmpoint(..Viaje_b)))] count
+
+
+let tmp =   GTFS_subset feed {a} GTFS_subset feed {b} symmjoin[(.Recorrido_a = ..Recorrido_b) and (.Correlativo_a # ..Correlativo_b)] consume
+
+
+query tmp feed filter[gmo_intersects( mapping("/home/mera/Descargas/gtfsv23/stops.txt",creategenericmpoint(.Journey_a)), mapping("/home/mera/Descargas/gtfsv23/stops.txt",creategenericmpoint(.Journey_b)))] count
+
+#4		
+
+
+query Bip_subset feed {a} Bip_subset feed  {b} symmjoin[(.Id_a = ..Id_b) and (.Correlativo_a # ..Correlativo_b) and gmo_intersects( mapping("/home/mera/Descargas/gtfsv23/stops.txt",creategenericmpoint(.Journey_a)), mapping("/mera/Descargas/gtfsv23/stops.txt",creategenericmpoint(..Journey_b)))] count
+
+# 5
+
+query Bus_subset feed {a} Bus_subset feed {b} symmjoin[(.Patente_a # ..Patente_b) and (.Recorrido_a = ..Recorrido_b) and gmo_similarity( creategenericmpoint(.Journey_a), creategenericmpoint(..Journey_b))] count
+
+#6
+
+query Bus_subset feed {a} GTFS_subset feed {b} symmjoin[(.Recorrido_a = ..Recorrido_b) and gmo_similarity(creategenericmpoint(.Journey_a), mapping("/home/mera/Descargas/gtfsv23/stops.txt", creategenericmpoint(..Journey_b)) )] consume

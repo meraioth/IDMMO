@@ -57,7 +57,7 @@ namespace gmo{
 
 */
 
-bool similar_time_interval(temporalalgebra::UPoint& a, temporalalgebra::UPoint& b, int delta_time=2*60*1000){
+bool similar_time_interval(temporalalgebra::UPoint& a, temporalalgebra::UPoint& b, int delta_time=1*60*1000){
   Interval<Instant> a_interval = a.getTimeInterval();
   Interval<Instant> b_interval = b.getTimeInterval();
   //cout<<"(abs(a_interval.start.millisecondsToNull() - b_interval.start.millisecondsToNull()) < delta_time)"<<(abs(a_interval.start.millisecondsToNull() - b_interval.start.millisecondsToNull()) < delta_time)<<endl;
@@ -80,7 +80,7 @@ bool similar_unit(temporalalgebra::UPoint& a, temporalalgebra::UPoint& b){
   return similar_time_interval(a,b) && similar_space_interval(a,b);
 }
 
-bool intersection(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime, double delta_space=0.001, int delta_time=300*1000){
+bool intersection(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime){
   for(int i=0; i<T->GetNoComponents();i++){ 
     temporalalgebra::UPoint unit_t(true);
     T->Get(i, unit_t);    
@@ -96,7 +96,7 @@ bool intersection(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime, 
 
 }
 
-bool simplification(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime, double delta_space=0.001, int delta_time=300*1000){
+bool simplification(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime){
   bool found;
   for(int i=0; i<T->GetNoComponents();i++){
     found=false; 
@@ -118,7 +118,7 @@ bool simplification(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime
   
 }
 
-bool group(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime, double delta_space=0.001, int delta_time=300*1000){
+bool group(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime){
   //vector<int> grouped;
   bool found;
   for(int i=0; i<T_prime->GetNoComponents();i++){
@@ -151,11 +151,11 @@ bool group(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime, double 
 }
 
 
-bool partition(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime, double delta_space=0.001, int delta_time=300*1000){
+bool partition(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime){
   return simplification(T,T_prime) && group(T,T_prime);
 }
 
-bool similarity(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime, double delta_space=0.001, int delta_time=300*1000){
+bool similarity(temporalalgebra::MPoint* T, temporalalgebra::MPoint* T_prime){
   return simplification(T,T_prime) && group(T,T_prime) && simplification(T_prime, T) && group(T_prime, T);
 }
 

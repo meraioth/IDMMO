@@ -96,7 +96,7 @@ namespace gmo{
 			static std::string Example();
 
 		private :
-			MPoint * mtpoint;
+			MPoint mtpoint;
 			bool def_mtpoint;
 			Domain domain;
 	};
